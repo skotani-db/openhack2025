@@ -72,9 +72,14 @@
 
 # COMMAND ----------
 
+# 既存のウィジェットを削除
+dbutils.widgets.removeAll()
+
+# COMMAND ----------
+
 # MAGIC %md
-# MAGIC ### 検討(研修環境のセットアップ)
-# MAGIC `時間短縮したい。スキーマ作成などはセットアップスクリプトを実行する形で作成する？`
+# MAGIC ### 環境のセットアップ
+# MAGIC 本ノートブックで作業するために以下の処理を行います。
 # MAGIC - スキーマ作成
 # MAGIC - ボリューム作成
 # MAGIC - ボリュームへのデータコピー
@@ -120,57 +125,38 @@ file_dir
 volume_dir
 checkpoint_volume_dir
 dbutils.fs.cp(file_dir, volume_dir, recurse=True)
+file_list = [file.name for file in dbutils.fs.ls(volume_dir)]
 display(dbutils.fs.ls(volume_dir))
 
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## ヒント：SQLを使った、Databricksのデータパイプライン作成
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### ファイルに対するクエリ
-# MAGIC Databricksはファイルに対してSQLを使ったクエリを実行することができます。  
-# MAGIC 以下のセルでは、csv ファイルに対してクエリを実行します。(Unity Catalogボリューム内のファイルを操作する例です)
-# MAGIC
-# MAGIC csvだけではなく、parquet、JSON など、多くのデータファイルタイプでクエリを実行可能です。
-# MAGIC
-# MAGIC データ基盤(データレイクハウス)へのデータ取り込みのワークフローでは、クラウドストレージなどからデータアクセスするケースがありますが、SQLの構文でデータ取り込みを行うことができます。
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC SELECT * FROM csv.`/Volumes/trainer_catalog/default/src_data/sample_data_01/Product2.csv`;
-# MAGIC
-# MAGIC -- 注：csvのパスはバッククオートで囲みます。
+# MAGIC ### 変数の管理とウィジェット
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 変数の管理
-# MAGIC Databricksのノートブックは、セルごとにSQLやPythonなど異なる言語を使って処理が可能です。  
+# MAGIC 本ノートブックで利用する変数を記載(整理)しておきます。  
 # MAGIC
-# MAGIC ここでは、今回作成するパイプラインの作成を省力化するために、以降のSQLを使ったデータ取り込み、加工で利用する変数の整理を行います。
+# MAGIC | 変数名       | 用途                                     |
+# MAGIC |--------------|-----------------------------------------|
+# MAGIC | volume_dir   | ソースデータが格納されているVolumeのパス   |  
+# MAGIC | src_file     | ソースデータファイル                      | 
+# MAGIC | catalog_name | カタログ名                               | 
+# MAGIC | schema_name  | スキーマ名                               | 
 # MAGIC
-# MAGIC | 変数名 | 値 | 用途 |
-# MAGIC |--------|----|------|
-# MAGIC | volume_dir   | /Volumes/trainer_catalog/default/src_data/sample_data_01/Product2.csv | ソースデータが格納されているVolumeのパス |
-# MAGIC | src_file   | Account.csv | ソースデータファイル |
-# MAGIC | catalog_name   | openhack2025 | カタログ名 |
-# MAGIC | schema_name   | 01_medallion_architecture_for_ユーザ名 | スキーマ名 |
-# MAGIC   
-# MAGIC   
 # MAGIC
-# MAGIC ### 変数の定義と受け渡し
-# MAGIC Databricks では、Widgetを使って変数を簡単に管理することができます。
+# MAGIC #### 変数の定義と受け渡し
+# MAGIC 変数はコード上で定義することが多いと思いますが、Databricks では Widget を使って変数を管理することができます。  
+# MAGIC 参考：[Databricks ウィジェット](https://learn.microsoft.com/ja-jp/azure/databricks/notebooks/widgets)
 # MAGIC
 # MAGIC #### Widgetのメリット
 # MAGIC 1. Notebook上で変数を簡単に管理できます
 # MAGIC     - dbutils.widgets.text() などで変数を作成し、どのSQLセルやPythonセルからも利用可能です。
-# MAGIC 1. %sql でも %python でも同じ値を参照できる
+# MAGIC 1. 異なる言語 ( %sql でも %python でも) 同じ値を参照できる
 # MAGIC     - SQLセルとPythonセルのどちらからも dbutils.widgets.get("my_var") で取得できるため、統一的に扱えます。
-# MAGIC 1. SQLの中で ${} 記法を使って簡単に展開できる(現在は非推奨。。。)
+# MAGIC 1. SQLの中で ${} 記法を使って簡単に展開できる(現在は非推奨となりました)
 # MAGIC     - 例：
 # MAGIC         ```SELECT * FROM ${my_table};```
 # MAGIC 1. UIから値を変更できる
@@ -179,85 +165,16 @@ display(dbutils.fs.ls(volume_dir))
 
 # COMMAND ----------
 
-# DBTITLE 1,変数の定義と受け渡し
-# Widget定義の構文
-# 参考：https://docs.databricks.com/ja/notebooks/widgets.html#create-widgets
+# MAGIC %md
+# MAGIC #### Widgetの作成例
+
+# COMMAND ----------
 
 # 環境セットアップで定義した変数 volume_dir をウィジェットで定義
-dbutils.widgets.text("volume_dir", f"{volume_dir}", "1.データファイルの保存先")
+dbutils.widgets.text("volume_dir", volume_dir, "1.データファイルの保存先")
 
 # COMMAND ----------
 
-# DBTITLE 1,SQLでWIdgetの値を確認
-# MAGIC %sql
-# MAGIC
-# MAGIC SELECT :volume_dir;
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### [CSVファイルの読み取り](https://docs.databricks.com/ja/query/formats/csv.html)
-# MAGIC
-# MAGIC csvファイルの読み取りの際に、ヘッダや区切り文字を指定したい場合は、read_filesテーブル値関数を使用します。
-
-# COMMAND ----------
-
-# DBTITLE 1,変数を用いたSQLの例
-# MAGIC %sql
-# MAGIC -- -- コンテンツ検討中:いきなりread_filesの方が良い？？
-# MAGIC
-# MAGIC SELECT * from identifier('csv.`'||:volume_dir||'/'||'Product2.csv'||'`');
-# MAGIC -- SELECT * from read_files(:volume_dir||'/'||'Product2.csv');
-# MAGIC
-# MAGIC -- 以下のような指定も可能ですが、現在は非推奨になっています。
-# MAGIC -- SELECT * FROM csv.`${volume_dir}/Product2.csv`;
-
-# COMMAND ----------
-
-# DBTITLE 1,ヘッダーや区切り文字の指定
-# MAGIC %sql
-# MAGIC
-# MAGIC SELECT * FROM read_files(:volume_dir||'/'||'Product2.csv',
-# MAGIC   format => 'csv',
-# MAGIC   header => true,
-# MAGIC   delimiter => ',',
-# MAGIC   mode => 'FAILFAST')
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Q1. Bronzeテーブルのパイプラインを作成してください。(標準時間：20分)
-# MAGIC
-# MAGIC 取り込み対象のデータについては、下記のオブジェクトと同等のものとなっております。
-# MAGIC
-# MAGIC - [Product2 | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_product2.htm)
-# MAGIC - [PricebookEntry | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_pricebookentry.htm)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### 検討(利用するデータの説明を入れたい)
-# MAGIC - データ概要
-# MAGIC - データモデル
-# MAGIC - データ取り込みの構成イメージ(SourceData → ADLS(ボリューム) → Databricks)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### 実践例
-# MAGIC - ○○をします。
-
-# COMMAND ----------
-
-# DBTITLE 1,ソースファイルの一覧を取得
-# データソースとなるデータファイルの一覧を取得
-file_list = [file.name for file in dbutils.fs.ls(volume_dir)]
-print(file_list)
-
-# COMMAND ----------
-
-# DBTITLE 1,Widgetを作成し、データファイルを選択
 # ドロップダウンウィジェットを作成し、ファイルリストからデータファイルを選択
 dbutils.widgets.dropdown("src_file", file_list[0], file_list, "2.取り込むデータファイルを選択")
 
@@ -267,8 +184,109 @@ dbutils.widgets.text("schema_name", schema_name, "4.スキーマ名")
 
 # COMMAND ----------
 
-# DBTITLE 1,currentのカタログとスキーマを指定
+# MAGIC %md
+# MAGIC ### ヒント：SQLを使った、Databricksのデータパイプライン作成
+# MAGIC
+# MAGIC 環境のセットアップや変数の整理ができたので、ソースデータからデータを読み込みましょう。
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### ファイルに対するクエリ
+# MAGIC Databricksはファイルに対してSQLを使ったクエリを実行することができます。  
+# MAGIC 以下のセルでは、csv ファイルに対してクエリを実行します。(Unity Catalogボリューム内のファイルを操作する例です)
+# MAGIC
+# MAGIC csvだけではなく、parquet、JSON など、多くのデータファイルタイプでクエリを実行可能です。
+# MAGIC
+# MAGIC データ基盤(データレイクハウス)へのデータ取り込みのワークフローでは、クラウドストレージなどからデータアクセスするケースがありますが、SQLの構文でデータ取り込みを行うことができます。  
+# MAGIC ヘッダ行を無視したい場合などの指定も可能です。
+
+# COMMAND ----------
+
 # MAGIC %sql
+# MAGIC SELECT * 
+# MAGIC FROM csv.`/Volumes/trainer_catalog/default/src_data/sample_data_01/Product2.csv` -- 読み込み対象のcsvパスを指定。パスはバッククオート(`)で囲む
+# MAGIC WITH (
+# MAGIC   header = "true",        -- 最初の行をヘッダー (列名) として使用
+# MAGIC   delimiter = ",",        -- カンマ区切りのファイル
+# MAGIC   inferSchema = "true",   -- 自動的にデータ型を推測
+# MAGIC   mode = "FAILFAST"       -- 読み込みエラー時に即時失敗
+# MAGIC );
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC また、Databricks では SQL ユーザーが CSV ファイルを読み取る場合は、read_files テーブル値関数の利用を推奨しています。  
+# MAGIC 参考：
+# MAGIC  [CSVファイルの読み取り](https://docs.databricks.com/ja/query/formats/csv.html)
+# MAGIC
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- read_filesテーブル値関数の利用例
+# MAGIC SELECT * FROM read_files(:volume_dir||'/'||'Product2.csv',
+# MAGIC   format => 'csv',
+# MAGIC   delimiter => ',',
+# MAGIC   header => true,
+# MAGIC   mode => 'FAILFAST')
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC #### (参考)`read_files()` テーブル値関数について
+# MAGIC
+# MAGIC `read_files()`テーブル値関数（TVF）は、さまざまなファイル形式を読み取ることができます。詳細は[こちら](https://learn.microsoft.com/ja-jp/azure/databricks/sql/language-manual/functions/read_files)を参照してください。最初のパラメータはデータのパスです。
+# MAGIC
+# MAGIC 使用しているオプションは次の通りです：
+# MAGIC
+# MAGIC 1. `format => "csv"` -- データファイルは `CSV` 形式です
+# MAGIC 1. `sep => "|"` -- データフィールドは |（パイプ）文字で区切られています
+# MAGIC 1. `header => true` -- 最初の行はカラム名として使用されます
+# MAGIC 1. `mode => "FAILFAST"` -- 異常データがある場合、ステートメントはエラーをスローします
+# MAGIC
+# MAGIC この場合、既存の `CSV` データを移動していますが、異なるオプションを使用することで他のデータタイプも簡単に使用できます。
+# MAGIC
+# MAGIC スキーマに一致しないデータを救出するための `_rescued_data` カラムがデフォルトで提供されます。
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Q1. Bronzeテーブルのパイプラインを作成してください。(標準時間：20分)
+# MAGIC
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC Bronzeテーブルを作成し、Volumeにあるソースデータを取り込む処理を作成します。  
+# MAGIC 以下の図はこのノートブックで作成するパイプラインです。  
+# MAGIC Bronzeテーブルのパイプラインは赤点線で囲った部分の処理となります。
+# MAGIC
+# MAGIC <img src="/Volumes/trainer_catalog/default/src_data/images/01_medallion_bronze.png" width="1300" height="500">
+# MAGIC
+# MAGIC 取り込み対象のデータについては、下記のオブジェクトと同等のものとなっております。
+# MAGIC
+# MAGIC - [Product2 | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_product2.htm)
+# MAGIC - [PricebookEntry | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_pricebookentry.htm)
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### 手順
+# MAGIC 1. 利用するカタログとスキーマの指定
+# MAGIC 1. データソースとターゲットテーブルの定義
+# MAGIC 1. テーブル定義と作成
+# MAGIC 1. ソースデータの読み込み
+# MAGIC 1. bronze テーブルへデータを書き込み
+
+# COMMAND ----------
+
+# DBTITLE 1,利用するカタログとスキーマの指定
+# MAGIC %sql
+# MAGIC -- currentのカタログとスキーマを指定
 # MAGIC use catalog ${catalog_name};
 # MAGIC use schema ${schema_name};
 # MAGIC
@@ -276,15 +294,23 @@ dbutils.widgets.text("schema_name", schema_name, "4.スキーマ名")
 
 # COMMAND ----------
 
-# DBTITLE 1,変数の定義
+# DBTITLE 1,データソースとターゲットテーブルの定義
+# 変数の定義
+
+# 取り込み対象は Product2.csv です。
+# ウィジェットの 2.取り込むデータファイルを選択(src_file) から Product2.csv を選択してください。
+
 src_file = dbutils.widgets.get("src_file")
 src_file_path__1_1_1 = f"{volume_dir}/{src_file}"
 tgt_table_name__1_1_1 = f"{catalog_name}.{schema_name}.product2__bronze"
 
 # COMMAND ----------
 
-# DBTITLE 1,参考：CSV の中身をチェック
-# CSV の中身をチェックしたい場合、dbutilsを使って参照することができます。以下の例では指定したパスのファイルの先頭700byteを表示しています。
+# 参考：CSV の中身をチェック
+
+# CSV の中身をチェックしたい場合、dbutilsを使って参照することができます。
+# 以下の例では指定したパスのファイルの先頭700byteを表示しています。
+
 data = dbutils.fs.head(src_file_path__1_1_1, 700)
 print(data)
 
@@ -327,32 +353,10 @@ spark.sql(create_tbl_ddl)
 
 # COMMAND ----------
 
-# DBTITLE 1,変数の整理
-# %sql
-# -- ソースファイルと書き込み先テーブルを変数として定義
-# DECLARE OR REPLACE VARIABLE src_file__1_1_1 STRING DEFAULT '';
-# DECLARE OR REPLACE VARIABLE tgt_table_name__1_1_1 STRING DEFAULT '';
-
-# -- 変数への値のセット
-# SET VAR src_file__1_1_1       = :volume_dir||'/'||:src_file;
-# SET VAR tgt_table_name__1_1_1 = :catalog_name||'.'||:schema_name||'.product2__bronse';
-
-# -- 変数の値を確認
-# -- VALUES (src_file__1_1_1, tgt_table_name__1_1_1);
-
-# -- 蛇足。これでも良い。CTEでも良い
-# SELECT *
-# FROM (
-#   VALUES (src_file__1_1_1, tgt_table_name__1_1_1)
-# ) AS t(src_file, tgt_table);
-
-# COMMAND ----------
-
-# DBTITLE 1,ソースデータの読み込みとview化
+# DBTITLE 1,ソースデータの読み込みと一時view化
 # MAGIC %sql
 # MAGIC -- TEMP VIEWの作成もDDLとなるため、ファイルパスのリテラル値で渡す必要があります。(:volume_dirなどは使えません)
-# MAGIC -- ここではSQLを使ってリテラル値を指定していますが、Pythonを使ってビュー定義クエリを組み立て、リテラルに展開してから実行する方法もあります。
-# MAGIC -- (spark.sql(query))
+# MAGIC -- ここではSQLを使ってリテラル値を指定していますが、Pythonを使ってビュー定義クエリを組み立て、リテラルに展開してから実行する方法 spark.sql(query) もあります。
 # MAGIC
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW bronze_data AS
 # MAGIC SELECT 
@@ -368,8 +372,8 @@ spark.sql(create_tbl_ddl)
 
 # COMMAND ----------
 
-# DBTITLE 1,結果を確認
 # MAGIC %sql
+# MAGIC -- TEMPORARY VIEW の中身を確認
 # MAGIC select * from bronze_data
 # MAGIC limit 10
 # MAGIC ;
@@ -377,13 +381,9 @@ spark.sql(create_tbl_ddl)
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC -- (参考)テーブル情報の確認
 # MAGIC describe extended bronze_data
 # MAGIC ;
-
-# COMMAND ----------
-
-src_file_path__1_1_1
-# tgt_table_name__1_1_1
 
 # COMMAND ----------
 
@@ -402,49 +402,33 @@ spark.sql(query)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC #### (参考) 冪等性の考慮とMERGE処理について
+# MAGIC Databricksのデータパイプラインでは、再実行しても結果が変わらない「冪等性」を考慮することが重要です。
+# MAGIC パイプラインの処理が失敗した場合に再実行しても、データの重複や不整合が発生しないように設計する必要があります。
+# MAGIC
+# MAGIC MERGE文は、以下の理由から冪等性を担保する実装に適しています：
+# MAGIC
+# MAGIC 1. **アトミックな操作**:
+# MAGIC    - MERGEは、INSERT、UPDATE、DELETEの複数の操作を1つのトランザクション内で実行します。
+# MAGIC    - そのため、途中でエラーが発生した場合でも、すべての操作が一括してロールバックされ、整合性が保たれます。
+# MAGIC
+# MAGIC 2. **条件に基づくデータ同期**:
+# MAGIC    - ソースデータとターゲットテーブルを、キーに基づいて一致させ、必要に応じて更新や挿入、削除を行うため、
+# MAGIC      同じMERGE文を再実行しても、既に正しい状態にあるレコードは更新されず、不要な重複が生じません。
+# MAGIC
+# MAGIC 3. **再実行時の安全性**:
+# MAGIC    - MERGE文は、既に適用済みの変更に対して無駄な操作を行わないため、同じ操作を複数回実行しても
+# MAGIC      テーブルの状態が変わらず、パイプラインの冪等性が確保されます。
+# MAGIC
+# MAGIC MERGE文を使用することで、ターゲットテーブルへの挿入・更新・削除を一貫性のある方法で管理し、データパイプラインの再実行時にも問題が発生しないように実装できます。
+# MAGIC
+
+# COMMAND ----------
+
 # MAGIC %sql
+# MAGIC -- 取り込んだBronzeデータの確認
 # MAGIC SELECT * FROM product2__bronze;
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## フェデレーションクエリ
-# MAGIC
-
-# COMMAND ----------
-
-# SQL DB にフェデレーションクエリするパターンを実践
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Create Table as Select (CTAS)
-# MAGIC
-# MAGIC 前のポイントオブセールシステムから過去の売上データを含むテーブルを作成します。このデータはparquetファイル形式です。
-# MAGIC
-# MAGIC **`CREATE TABLE AS SELECT`** ステートメントは、入力クエリから取得したデータを使用してDeltaテーブルを作成し、データを入力します。テーブルを作成し、データで設定できます。
-# MAGIC
-# MAGIC CTAS ステートメントは、クエリ結果からスキーマ情報を自動的に推論し、手動でスキーマを宣言することはできません。
-# MAGIC
-# MAGIC つまり、Parquet ファイルやテーブルなど、スキーマが明確に定義されている外部データソースからのデータインジェストには、CTAS ステートメントが便利です。
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## `read_files()` テーブル値関数
-# MAGIC
-# MAGIC 次のセルのコードはCTASを使用してテーブルを作成します。`read_files()`テーブル値関数（TVF）は、さまざまなファイル形式を読み取ることができます。詳細は[こちら](https://docs.databricks.com/en/sql/language-manual/functions/read_files.html)を参照してください。最初のパラメータはデータのパスです。このノートブックの最上部にある `Classroom-Setup` スクリプトは、サンプルデータへのパスを含む多くの有用な変数を持つオブジェクトをインスタンス化しました。
-# MAGIC
-# MAGIC 使用しているオプションは次の通りです：
-# MAGIC
-# MAGIC 1. `format => "csv"` -- データファイルは `CSV` 形式です
-# MAGIC 1. `sep => "|"` -- データフィールドは |（パイプ）文字で区切られています
-# MAGIC 1. `header => true` -- 最初の行はカラム名として使用されます
-# MAGIC 1. `mode => "FAILFAST"` -- 異常データがある場合、ステートメントはエラーをスローします
-# MAGIC
-# MAGIC この場合、既存の `CSV` データを移動していますが、異なるオプションを使用することで他のデータタイプも簡単に使用できます。
-# MAGIC
-# MAGIC スキーマに一致しないデータを救出するための `_rescued_data` カラムがデフォルトで提供されます。
 
 # COMMAND ----------
 
@@ -453,12 +437,12 @@ spark.sql(query)
 
 # COMMAND ----------
 
-# DBTITLE 1,取り込み対象データの設定
 # 2.取り込むデータファイルを選択のウィジェットから、PricebookEntry.csv を選択してください。
-
-src_file
+print(src_file)
 
 # COMMAND ----------
+
+# ソースデータファイルとターゲットテーブルのパスを変数に格納
 
 src_file_path__1_2_1 = f"{volume_dir}/{src_file}"
 tgt_table_name__1_2_1 = f"{catalog_name}.{schema_name}.pricebook_entry__bronze"
@@ -504,7 +488,7 @@ spark.sql(create_tbl_ddl)
 
 # COMMAND ----------
 
-# DBTITLE 1,ソースデータのパス
+# ソースデータのパスを確認(TEMP VIEW作成時のパス確認用)
 src_file_path__1_2_1
 
 # COMMAND ----------
@@ -525,7 +509,6 @@ src_file_path__1_2_1
 # MAGIC   delimiter => ',',
 # MAGIC   mode => 'FAILEFAST'
 # MAGIC ) as t
-# MAGIC limit 10
 # MAGIC ;
 # MAGIC
 
@@ -537,7 +520,6 @@ src_file_path__1_2_1
 # COMMAND ----------
 
 # ToDo `pricebook_entry__bronze`テーブルへ書き込みを実施してください。
-# 動的SQLクエリの組み立て
 
 query = f"""
 MERGE INTO {tgt_table_name__1_2_1} as tgt
@@ -568,9 +550,25 @@ spark.sql(query)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC 続いて、Silver テーブルを作成します。  
+# MAGIC Silver テーブルは、Bronze に取り込まれたデータからノイズや不整合を取り除き、統合・最適化された高品質なデータセットを生成する処理を行います。  
+# MAGIC
+# MAGIC データエンジニアリングにおけるデータパイプラインの中核的な役割を担います。  
+# MAGIC 代表的な処理は、データクレンジング、データ統合、データ変換、重複除去、データ品質チェックなどです。
+# MAGIC
+# MAGIC ここでは、データの重複チェックと、Bronze に取り込まれたデータに対するスキーマ適用を行います。  
+# MAGIC <br>
+# MAGIC
+# MAGIC <img src="/Volumes/trainer_catalog/default/src_data/images/01_medallion_silver.png" width="1300" height="500">
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ### 実践例
 
 # COMMAND ----------
+
+# ソースデータとターゲットテーブルのパスを変数に格納
 
 src_table_name__2_1_1 = f"{catalog_name}.{schema_name}.product2__bronze"
 tgt_table_name__2_1_1 = f"{catalog_name}.{schema_name}.product2__silver"
@@ -729,6 +727,8 @@ MERGE INTO {tgt_table_name__2_1_1} AS tgt
 
 # COMMAND ----------
 
+# ソースデータとターゲットテーブルのパスを変数に格納
+
 src_table_name__2_2_1 = f"{catalog_name}.{schema_name}.pricebook_entry__bronze"
 tgt_table_name__2_2_1 = f"{catalog_name}.{schema_name}.pricebook_entry__silver"
 
@@ -870,17 +870,38 @@ spark.sql(query)
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC Goldテーブルを作成し、業務で利用可能な、信頼できるデータを提供します。  
+# MAGIC
+# MAGIC Goldレイヤは最終的に意思決定やビジネスインサイトを得るためのデータセットが用意される場所です。Silverレイヤで整備されたデータに対して、ビジネスロジックや集計、結合などが適用され、実際の業務や分析に即した「信頼性の高い」データを生成します。
+# MAGIC
+# MAGIC また、Goldテーブルは、レポーティングやダッシュボード、機械学習モデルなどの活用を前提として設計されているため、クエリ性能やデータアクセスの最適化が図られています。
+# MAGIC
+# MAGIC ここでは、  
+# MAGIC 「製品ファミリごとの製品数をカウントしたテーブル」、  
+# MAGIC 「Product2をベースに、pricebook_entryにあるUnitPriceを追加したデータのテーブル」  
+# MAGIC を作成します。
+# MAGIC
+# MAGIC <br>
+# MAGIC <img src="/Volumes/trainer_catalog/default/src_data/images/01_medallion_gold.png" width="1300" height="500">
+# MAGIC
+# MAGIC 取り込み対象のデータについては、下記のオブジェクトと同等のものとなっております。
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ### 実践例
 # MAGIC Pythonを活用してゴールドテーブルを作成します
 
 # COMMAND ----------
+
+# ソースデータとターゲットテーブルのパスを変数に格納
 
 src_table_name__3_1_1 = f"{catalog_name}.{schema_name}.product2__silver"
 tgt_table_name__3_1_1 = f"{catalog_name}.{schema_name}.product_count_by_family"
 
 # COMMAND ----------
 
-# テーブルが存在する場合に Drop
+# 作成対象のテーブルが既に存在する場合、Drop
 spark.sql(
     f"""
     DROP TABLE IF EXISTS {tgt_table_name__3_1_1}
@@ -889,7 +910,7 @@ spark.sql(
 
 # COMMAND ----------
 
-# 書き込み想定のデータフレームを作成
+# Goldテーブルに書き込むためのデータフレームを作成
 query = f"""
 SELECT
   Family,
@@ -921,7 +942,7 @@ display(spark.table(tgt_table_name__3_1_1))
 # MAGIC %md
 # MAGIC ### ToDo `d_product`パイプラインを作成してください。
 # MAGIC
-# MAGIC `Product2`をベースに、`pricebook_entry`にある`UnitPrice`を追加したデータのテーブルを作成してください。
+# MAGIC 以下のサンプルを参考に、`Product2`をベースに、`pricebook_entry`にある`UnitPrice`を追加したデータのテーブルを作成してください。
 # MAGIC
 # MAGIC ```sql
 # MAGIC SELECT
@@ -941,6 +962,8 @@ display(spark.table(tgt_table_name__3_1_1))
 
 # COMMAND ----------
 
+# データソースとターゲットテーブルのパスを変数に格納
+
 src_table_name__3_2_1 = f"{catalog_name}.{schema_name}.product2__silver"
 src_table_name__3_2_2 = f"{catalog_name}.{schema_name}.pricebook_entry__silver"
 tgt_table_name__3_2_1 = f"{catalog_name}.{schema_name}.d_product"
@@ -956,7 +979,7 @@ spark.sql(
 
 # COMMAND ----------
 
-# ToDo 書き込み想定のデータフレームを作成してください。
+# ToDo Goldテーブルに書き込むためのデータフレームを作成してください。
 df = spark.sql(f"""
 SELECT
   prd.*
@@ -991,7 +1014,12 @@ display(spark.table(tgt_table_name__3_2_1))
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Challenge1. Databricks Auto Loader によりデータ取り込みを実施してください。
+# MAGIC ## Challenge1. フェデレーションクエリを使ったデータの取り込み
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Challenge2. Databricks Auto Loader によりデータ取り込みを実施してください。
 # MAGIC
 # MAGIC こちらは Challenge のコンテンツであり、実施は任意です。
 # MAGIC
@@ -1007,246 +1035,6 @@ display(spark.table(tgt_table_name__3_2_1))
 # MAGIC - [Campaign | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_campaign.htm)
 # MAGIC - [Account | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_account.htm)
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### 実践例
-
-# COMMAND ----------
-
-src_file_path__c1_1_1 = f"{volume_dir}/Campaign.csv"
-checkpoint_dir__c1_1_1 = f"{checkpoint_volume_dir}/campaign"
-tgt_table_name__c1_1_1 = f"{catalog_name}.{schema_name}.campaign__bronze"
-
-schema__c1_1_1 = """
-`id` STRING,
-`IsDeleted` STRING,
-`Name` STRING,
-`ParentId` STRING,
-`Type` STRING,
-`Status` STRING,
-`StartDate` STRING,
-`EndDate` STRING,
-`ExpectedRevenue` STRING,
-`BudgetedCost` STRING,
-`ActualCost` STRING,
-`ExpectedResponse` STRING,
-`NumberSent` STRING,
-`IsActive` STRING,
-`Description` STRING,
-`NumberOfLeads` STRING,
-`NumberOfConvertedLeads` STRING,
-`NumberOfContacts` STRING,
-`NumberOfResponses` STRING,
-`NumberOfOpportunities` STRING,
-`NumberOfWonOpportunities` STRING,
-`AmountAllOpportunities` STRING,
-`AmountWonOpportunities` STRING,
-`OwnerId` STRING,
-`CreatedDate` STRING,
-`CreatedById` STRING,
-`LastModifiedDate` STRING,
-`LastModifiedById` STRING,
-`SystemModstamp` STRING,
-`LastActivityDate` STRING,
-`LastViewedDate` STRING,
-`LastReferencedDate` STRING,
-`CampaignMemberRecordTypeId` STRING
-"""
-
-# COMMAND ----------
-
-# CSV の中身をチェック
-data = dbutils.fs.head(src_file_path__c1_1_1, 700)
-print(data)
-
-# COMMAND ----------
-
-# Bronzeテーブルを作成
-create_tbl_ddl = f"""
-CREATE OR REPLACE TABLE {tgt_table_name__c1_1_1}
-(
-{schema__c1_1_1},
-_rescued_data STRING,
-_datasource STRING,
-_ingest_timestamp timestamp
-
-)
-USING delta
-"""
-spark.sql(create_tbl_ddl)
-
-# COMMAND ----------
-
-# Databricks Auto Loader で利用するチェックポイントを初期化
-dbutils.fs.rm(checkpoint_dir__c1_1_1, True)
-
-# COMMAND ----------
-
-# ソースからデータを読み込む
-df = (
-    spark.readStream.format("cloudFiles")
-    .option("cloudFiles.format", "csv")
-    .option("cloudFiles.schemaLocation", checkpoint_dir__c1_1_1)
-    .option("cloudFiles.schemaHints", schema__c1_1_1)
-    .option("header", True)
-    .load(src_file_path__c1_1_1)
-)
-
-# ファイル メタデータ列を追加
-df = df.select("*", "_metadata")
-
-# ファイル メタデータ列に基づき監査列として`_datasource`列と`_ingest_timestamp`列を追加
-df = (
-    df.select("*", "_metadata")
-    .withColumn("_datasource", df["_metadata.file_path"])
-    .withColumn("_ingest_timestamp", df["_metadata.file_modification_time"])
-)
-
-# ファイル メタデータ列を削除
-df = df.drop("_metadata")
-
-# COMMAND ----------
-
-# `checkpoint_dir__c1_1_1`変数をチェックポイントとして指定して、書き込み処理を実施。
-(
-    df.writeStream.trigger(availableNow=True)
-    .option("checkpointLocation", checkpoint_dir__c1_1_1)
-    .trigger(availableNow=True)
-    .toTable(tgt_table_name__c1_1_1)
-)
-
-# COMMAND ----------
-
-# データが書き込まれたことを確認
-display(spark.table(f"{tgt_table_name__c1_1_1}"))
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### ToDo `account__bronze`のパイプラインを Databricks Auto Loader にて作成してください。
-
-# COMMAND ----------
-
-src_file_path__c1_2_1 = f"{volume_dir}/Account.csv"
-checkpoint_dir__c1_2_1 = f"{checkpoint_volume_dir}/account"
-tgt_table_name__c1_2_1 = f"{catalog_name}.{schema_name}.account__bronze"
-
-schema__c1_2_1 = """
-`id` STRING,
-`IsDeleted` STRING, 
-`MasterRecordId` STRING, 
-`Name` STRING, 
-`Type` STRING, 
-`ParentId` STRING, 
-`BillingStreet` STRING, 
-`BillingCity` STRING, 
-`BillingState` STRING, 
-`BillingPostalCode` STRING, 
-`BillingCountry` STRING, 
-`BillingLatitude` STRING, 
-`BillingLongitude` STRING, 
-`BillingGeocodeAccuracy` STRING, 
-`ShippingStreet` STRING, 
-`ShippingCity` STRING, 
-`ShippingState` STRING, 
-`ShippingPostalCode` STRING, 
-`ShippingCountry` STRING, 
-`ShippingLatitude` STRING, 
-`ShippingLongitude` STRING, 
-`ShippingGeocodeAccuracy` STRING, 
-`Phone` STRING, 
-`Fax` STRING, 
-`AccountNumber` STRING, 
-`Website` STRING, 
-`PhotoUrl` STRING, 
-`Sic` STRING, 
-`Industry` STRING, 
-`AnnualRevenue` STRING, 
-`NumberOfEmployees` STRING, 
-`Ownership` STRING, 
-`TickerSymbol` STRING, 
-`Description` STRING, 
-`Rating` STRING, 
-`Site` STRING, 
-`OwnerId` STRING, 
-`CreatedDate` STRING, 
-`CreatedById` STRING, 
-`LastModifiedDate` STRING, 
-`LastModifiedById` STRING, 
-`SystemModstamp` STRING, 
-`LastActivityDate` STRING, 
-`LastViewedDate` STRING, 
-`LastReferencedDate` STRING, 
-`Jigsaw` STRING, 
-`JigsawCompanyId` STRING, 
-`CleanStatus` STRING, 
-`AccountSource` STRING, 
-`DunsNumber` STRING, 
-`Tradestyle` STRING, 
-`NaicsCode` STRING, 
-`NaicsDesc` STRING, 
-`YearStarted` STRING, 
-`SicDesc` STRING, 
-`DandbCompanyId` STRING
-"""
-
-# COMMAND ----------
-
-# CSV の中身をチェック
-data = dbutils.fs.head(src_file_path__c1_2_1, 1000)
-print(data)
-
-# COMMAND ----------
-
-# Bronzeテーブルを作成
-create_tbl_ddl = f"""
-CREATE OR REPLACE TABLE {tgt_table_name__c1_2_1}
-(
-{schema__c1_2_1},
-_rescued_data STRING,
-_datasource STRING,
-_ingest_timestamp timestamp
-
-)
-USING delta
-"""
-spark.sql(create_tbl_ddl)
-
-# COMMAND ----------
-
-# Hint コード修正後に想定通りに動作しない場合にはDatabricks Auto Loader で利用するチェックポイントを初期化してください。
-# Databricks Auto Loader で利用するチェックポイントを初期化
-dbutils.fs.rm(checkpoint_dir__c1_2_1, True)
-
-# COMMAND ----------
-
-# ToDo `checkpoint_dir__c1_2_1`変数を`cloudFiles.schemaLocation`に指定して、ソースからデータの読み込み処理を記述してください。
-
-# COMMAND ----------
-
-# ToDo 監査列として`_datasource`列と`_ingest_timestamp`列を追加（`_metadata`列は追加しない）
-
-# COMMAND ----------
-
-# ToDo `checkpoint_dir__c1_2_1`変数をチェックポイントとして指定して、書き込み処理を実施してください。
-
-# COMMAND ----------
-
-# データが書き込まれたことを確認
-display(spark.table(f"{tgt_table_name__c1_2_1}"))
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## 事後処理
-
-# COMMAND ----------
-
-# ストリーム処理を停止
-for stream in spark.streams.active:
-    stream.stop()
 
 # COMMAND ----------
 
