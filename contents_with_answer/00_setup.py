@@ -85,7 +85,7 @@ dbutils.fs.mkdirs(f"/Volumes/{catalog_name}/{src_schema_name}/{src_volume_name}/
 # MAGIC 1. 現在のノートブックの左型タブにある`Workspace (Ctrl + Alt + E)`を選択し、現在のディレクトリにある`data`フォルダに移動
 # MAGIC 1. `sample_data_01`フォルダのハンバーガーメニュー（`︙`）を選択して、 `export` -> `Source File` をクリックしてデータファイルをダウンロード
 # MAGIC 1. ダウンロードした Zip ファイルを解凍
-# MAGIC 1. 現在のノートブックの左型タブにある`Catalog (Ctrl + Alt + C)`を選択後、`src_data` Volumne の`sample_data_01`フォルダにてハンバーガーメニュー（`︙`）を選択し、`Upload to volume`を選択
+# MAGIC 1. 現在のノートブックの左型タブにある`Catalog (Ctrl + Alt + C)`を選択後、`default`スキーマ下にある`src_data` Volume の`sample_data_01`フォルダにてハンバーガーメニュー（`︙`）を選択し、`Upload to volume`を選択
 # MAGIC 1. 表示されたウィンドウに解凍した CSV ファイルをすべて配置して、`Upload`を選択
 # MAGIC 1. 下記のセルを実行し、ファイルが配置されていることを確認
 
