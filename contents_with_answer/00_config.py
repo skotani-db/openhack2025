@@ -26,3 +26,7 @@ print(f"catalog_name: `{catalog_name}`")
 src_volume_name = "src_data"
 src_schema_name = "default"
 src_folder_name = "sample_data_01"
+
+# COMMAND ----------
+
+

@@ -293,6 +293,8 @@ spark.sql(states_sql).display()
 # MAGIC
 # MAGIC 以下のGeneiスペースに関するドキュメントを参考に、Genieスペースを利用する際の基本方針（例：利用用途に応じて、小規模な利用から初めて反復的な改善を実施すること。）を5つ程度検討してください。新たな質問への回答精度の向上やベストプラクティスの整理など、アプローチは自由です。
 # MAGIC
+# MAGIC - [効果的な Genie スペースをキュレーションする - Azure Databricks | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/databricks/genie/best-practices)
+# MAGIC
 # MAGIC - [AI/BI Genie スペースとは - Azure Databricks | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/databricks/genie/)
 # MAGIC - [Use trusted assets in AI/BI Genie spaces - Azure Databricks | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/databricks/genie/trusted-assets)
 # MAGIC - [効果的な Genie スペースをキュレーションする - Azure Databricks | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/databricks/genie/best-practices)
