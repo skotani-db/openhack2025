@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC ## 01. メダリオンアーキテクチャに基づいたデータエンジニアリング概要 (標準時間：60分)
+# MAGIC # メダリオンアーキテクチャに基づいたデータエンジニアリング概要 (標準時間：60分)
 # MAGIC
 # MAGIC
 # MAGIC
@@ -9,6 +9,12 @@
 
 # MAGIC %md
 # MAGIC ## 本ノートブックの目的：Databricksにおけるデータ処理の基礎と[メダリオンアーキテクチャ](https://www.databricks.com/jp/glossary/medallion-architecture)について理解を深める
+# MAGIC
+# MAGIC Q1. Bronze テーブルを作成してください<br>
+# MAGIC Q2. Silver テーブルを作成してください<br>
+# MAGIC Q3. Gold テーブルを作成してください<br>
+# MAGIC Challenge1. フェデレーションクエリを使ったデータ取り込み<br>
+# MAGIC Challenge2. Auto Loader によるデータの取り込み
 
 # COMMAND ----------
 
@@ -18,7 +24,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### メダリオンアーキテクチャとは(標準時間：5分)
+# MAGIC ## メダリオンアーキテクチャとは(標準時間：5分)
 # MAGIC
 # MAGIC データを、Bronze、Silver、Goldの３層の論理レイヤーで管理する手法です。Databricks では、すべてのレイヤーを Delta Lake 形式で保持することが推奨されています。
 # MAGIC
@@ -64,7 +70,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 事前準備
+# MAGIC ## 事前準備(標準時間：10分)
 
 # COMMAND ----------
 
@@ -72,67 +78,35 @@
 
 # COMMAND ----------
 
-# 既存のウィジェットを削除
-dbutils.widgets.removeAll()
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### 環境のセットアップ
-# MAGIC 本ノートブックで作業するために以下の処理を行います。
-# MAGIC - スキーマ作成
-# MAGIC - ボリューム作成
-# MAGIC - ボリュームへのデータコピー
-
-# COMMAND ----------
-
-# 本ノートブックで利用するスキーマを作成
+# 本ノートブックで利用するスキーマ
 schema_name = f"01_medallion_architecture_for_{user_name}"
 print(f"schema_name: `{schema_name}`")
-spark.sql(
-    f"""
-    CREATE SCHEMA IF NOT EXISTS {catalog_name}.{schema_name}
-    """
-)
-
-# COMMAND ----------
-
-# 本ノートブックで利用する Volume を作成
-volume_name = "src_file_volume_01"
-print(f"volume_name: `{volume_name}`")
-spark.sql(
-    f"""
-    CREATE VOLUME IF NOT EXISTS {catalog_name}.{schema_name}.{volume_name}
-    """
-)
-
-checkpoint_volume_name = "checkpoint_volume_01"
-print(f"checkpoint_volume_name: `{checkpoint_volume_name}`")
-spark.sql(
-    f"""
-    CREATE VOLUME IF NOT EXISTS {catalog_name}.{schema_name}.{checkpoint_volume_name}
-    """
-)
-
-# COMMAND ----------
-
-# 本ノートブックで利用するソースファイルを Volume に移動
-file_dir = f"/Volumes/{catalog_name}/{src_schema_name}/{src_volume_name}/{src_folder_name}"
-volume_dir = f"/Volumes/{catalog_name}/{schema_name}/{volume_name}"
-checkpoint_volume_dir = f"/Volumes/{catalog_name}/{schema_name}/{checkpoint_volume_name}"
-
-file_dir
-volume_dir
-checkpoint_volume_dir
-dbutils.fs.cp(file_dir, volume_dir, recurse=True)
-file_list = [file.name for file in dbutils.fs.ls(volume_dir)]
-display(dbutils.fs.ls(volume_dir))
-
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### 変数の管理とウィジェット
+# MAGIC 本ノートブックで作業するために以下の処理を行います。
+# MAGIC - スキーマ作成
+# MAGIC
+# MAGIC Unity Catalogで指定されたスキーマを作成するためのGUIを使用した手順は以下の通りです:
+# MAGIC
+# MAGIC ### スキーマの作成
+# MAGIC
+# MAGIC 1. Databricksワークスペースにログインします。
+# MAGIC
+# MAGIC 2. 左側のナビゲーションペインで「カタログ」をクリックします。
+# MAGIC
+# MAGIC 3. カタログペインで、スキーマを作成したいカタログを選択します。
+# MAGIC
+# MAGIC 4. 画面右上の「スキーマを作成」ボタンをクリックします。
+# MAGIC
+# MAGIC 5. スキーマ名として 上のセルに表示された`01_medallion_architecture_for_{username}` を入力します。
+# MAGIC
+# MAGIC 6. オプションでスキーマの目的を説明するコメントを追加します。AIによるコメントの付与も可能です。
+# MAGIC
+# MAGIC 7. 「作成」ボタンをクリックしてスキーマを作成します。
+# MAGIC
+# MAGIC 8. 必要に応じて、スキーマに対する権限が付与されていることを確認します。
 
 # COMMAND ----------
 
@@ -141,8 +115,6 @@ display(dbutils.fs.ls(volume_dir))
 # MAGIC
 # MAGIC | 変数名       | 用途                                     |
 # MAGIC |--------------|-----------------------------------------|
-# MAGIC | volume_dir   | ソースデータが格納されているVolumeのパス   |  
-# MAGIC | src_file     | ソースデータファイル                      | 
 # MAGIC | catalog_name | カタログ名                               | 
 # MAGIC | schema_name  | スキーマ名                               | 
 # MAGIC
@@ -165,18 +137,10 @@ display(dbutils.fs.ls(volume_dir))
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC #### Widgetの作成例
+# 既存のウィジェットを削除
+dbutils.widgets.removeAll()
 
 # COMMAND ----------
-
-# 環境セットアップで定義した変数 volume_dir をウィジェットで定義
-dbutils.widgets.text("volume_dir", volume_dir, "1.データファイルの保存先")
-
-# COMMAND ----------
-
-# ドロップダウンウィジェットを作成し、ファイルリストからデータファイルを選択
-dbutils.widgets.dropdown("src_file", file_list[0], file_list, "2.取り込むデータファイルを選択")
 
 # 利用するカタログ名とスキーマ名をウィジェットで管理
 dbutils.widgets.text("catalog_name", catalog_name, "3.カタログ名")
@@ -184,85 +148,14 @@ dbutils.widgets.text("schema_name", schema_name, "4.スキーマ名")
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC ### ヒント：SQLを使った、Databricksのデータパイプライン作成
-# MAGIC
-# MAGIC 環境のセットアップや変数の整理ができたので、ソースデータからデータを読み込みましょう。
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### ファイルに対するクエリ
-# MAGIC Databricksはファイルに対してSQLを使ったクエリを実行することができます。  
-# MAGIC 以下のセルでは、csv ファイルに対してクエリを実行します。(Unity Catalogボリューム内のファイルを操作する例です)
-# MAGIC
-# MAGIC csvだけではなく、parquet、JSON など、多くのデータファイルタイプでクエリを実行可能です。
-# MAGIC
-# MAGIC データ基盤(データレイクハウス)へのデータ取り込みのワークフローでは、クラウドストレージなどからデータアクセスするケースがありますが、SQLの構文でデータ取り込みを行うことができます。  
-# MAGIC ヘッダ行を無視したい場合などの指定も可能です。
-
-# COMMAND ----------
-
 # MAGIC %sql
-# MAGIC SELECT * 
-# MAGIC FROM csv.`/Volumes/trainer_catalog/default/src_data/sample_data_01/Product2.csv` -- 読み込み対象のcsvパスを指定。パスはバッククオート(`)で囲む
-# MAGIC WITH (
-# MAGIC   header = "true",        -- 最初の行をヘッダー (列名) として使用
-# MAGIC   delimiter = ",",        -- カンマ区切りのファイル
-# MAGIC   inferSchema = "true",   -- 自動的にデータ型を推測
-# MAGIC   mode = "FAILFAST"       -- 読み込みエラー時に即時失敗
-# MAGIC );
+# MAGIC USE CATALOG ${catalog_name};
+# MAGIC USE SCHEMA ${schema_name};
 
 # COMMAND ----------
 
-# MAGIC %md
-# MAGIC また、Databricks では SQL ユーザーが CSV ファイルを読み取る場合は、read_files テーブル値関数の利用を推奨しています。  
-# MAGIC 参考：
-# MAGIC  [CSVファイルの読み取り](https://docs.databricks.com/ja/query/formats/csv.html)
-# MAGIC
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- read_filesテーブル値関数の利用例
-# MAGIC SELECT * FROM read_files(:volume_dir||'/'||'Product2.csv',
-# MAGIC   format => 'csv',
-# MAGIC   delimiter => ',',
-# MAGIC   header => true,
-# MAGIC   mode => 'FAILFAST')
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### (参考)`read_files()` テーブル値関数について
-# MAGIC
-# MAGIC `read_files()`テーブル値関数（TVF）は、さまざまなファイル形式を読み取ることができます。詳細は[こちら](https://learn.microsoft.com/ja-jp/azure/databricks/sql/language-manual/functions/read_files)を参照してください。最初のパラメータはデータのパスです。
-# MAGIC
-# MAGIC 使用しているオプションは次の通りです：
-# MAGIC
-# MAGIC 1. `format => "csv"` -- データファイルは `CSV` 形式です
-# MAGIC 1. `sep => "|"` -- データフィールドは |（パイプ）文字で区切られています
-# MAGIC 1. `header => true` -- 最初の行はカラム名として使用されます
-# MAGIC 1. `mode => "FAILFAST"` -- 異常データがある場合、ステートメントはエラーをスローします
-# MAGIC
-# MAGIC この場合、既存の `CSV` データを移動していますが、異なるオプションを使用することで他のデータタイプも簡単に使用できます。
-# MAGIC
-# MAGIC スキーマに一致しないデータを救出するための `_rescued_data` カラムがデフォルトで提供されます。
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Q1. Bronzeテーブルのパイプラインを作成してください。(標準時間：20分)
-# MAGIC
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC Bronzeテーブルを作成し、Volumeにあるソースデータを取り込む処理を作成します。  
-# MAGIC 以下の図はこのノートブックで作成するパイプラインです。  
-# MAGIC Bronzeテーブルのパイプラインは赤点線で囲った部分の処理となります。
+# MAGIC %md 
+# MAGIC ## Q1: Bronze テーブルを作成してください(標準時間：15分)
 # MAGIC
 # MAGIC <img src="/Volumes/trainer_catalog/default/src_data/images/01_medallion_bronze.png" width="1300" height="500">
 # MAGIC
@@ -270,286 +163,67 @@ dbutils.widgets.text("schema_name", schema_name, "4.スキーマ名")
 # MAGIC
 # MAGIC - [Product2 | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_product2.htm)
 # MAGIC - [PricebookEntry | Salesforce プラットフォームのオブジェクトリファレンス | Salesforce Developers](https://developer.salesforce.com/docs/atlas.ja-jp.object_reference.meta/object_reference/sforce_api_objects_pricebookentry.htm)
+
+# COMMAND ----------
+
+# MAGIC %md 
+# MAGIC ###ToDo `product2__bronze`, `pricebook_entry__bronze`をUIから作成する
+# MAGIC DatabricksのUnity CatalogでVolumeに格納したCSVデータからGUIでテーブルを作成する方法を以下にステップバイステップで説明します。
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### 手順
-# MAGIC 1. 利用するカタログとスキーマの指定
-# MAGIC 1. データソースとターゲットテーブルの定義
-# MAGIC 1. テーブル定義と作成
-# MAGIC 1. ソースデータの読み込み
-# MAGIC 1. bronze テーブルへデータを書き込み
-
-# COMMAND ----------
-
-# DBTITLE 1,利用するカタログとスキーマの指定
-# MAGIC %sql
-# MAGIC -- currentのカタログとスキーマを指定
-# MAGIC use catalog ${catalog_name};
-# MAGIC use schema ${schema_name};
 # MAGIC
-# MAGIC select current_schema();
-
-# COMMAND ----------
-
-# DBTITLE 1,データソースとターゲットテーブルの定義
-# 変数の定義
-
-# 取り込み対象は Product2.csv です。
-# ウィジェットの 2.取り込むデータファイルを選択(src_file) から Product2.csv を選択してください。
-
-src_file = dbutils.widgets.get("src_file")
-src_file_path__1_1_1 = f"{volume_dir}/{src_file}"
-tgt_table_name__1_1_1 = f"{catalog_name}.{schema_name}.product2__bronze"
-
-# COMMAND ----------
-
-# 参考：CSV の中身をチェック
-
-# CSV の中身をチェックしたい場合、dbutilsを使って参照することができます。
-# 以下の例では指定したパスのファイルの先頭700byteを表示しています。
-
-data = dbutils.fs.head(src_file_path__1_1_1, 700)
-print(data)
-
-# COMMAND ----------
-
-# DBTITLE 1,product2__bronze テーブルを作成
-# Databricks SQLのDDL文では、変数化した値をテーブル名などに直接利用することはできません。Pythonでクエリ文字列を生成してSQLを実行します。
-# 定義したSQLは spark.sql(SQL文)で実行可能です。
-
-create_tbl_ddl = f"""
-CREATE OR REPLACE TABLE {tgt_table_name__1_1_1}
-(
-    `Id` STRING,
-    `Name` STRING,
-    `ProductCode` STRING,
-    `Description` STRING,
-    `IsActive` STRING,
-    `CreatedDate` STRING,
-    `CreatedById` STRING,
-    `LastModifiedDate` STRING,
-    `LastModifiedById` STRING,
-    `SystemModstamp` STRING,
-    `Family` STRING,
-    `ExternalDataSourceId` STRING,
-    `ExternalId` STRING,
-    `DisplayUrl` STRING,
-    `QuantityUnitOfMeasure` STRING,
-    `IsDeleted` STRING,
-    `IsArchived` STRING,
-    `LastViewedDate` STRING,
-    `LastReferencedDate` STRING,
-    `StockKeepingUnit` STRING,
-    _rescued_data STRING,
-    _datasource STRING,
-    _ingest_timestamp timestamp
-)
-USING delta;
-"""
-spark.sql(create_tbl_ddl)
-
-# COMMAND ----------
-
-# DBTITLE 1,ソースデータの読み込みと一時view化
-# MAGIC %sql
-# MAGIC -- TEMP VIEWの作成もDDLとなるため、ファイルパスのリテラル値で渡す必要があります。(:volume_dirなどは使えません)
-# MAGIC -- ここではSQLを使ってリテラル値を指定していますが、Pythonを使ってビュー定義クエリを組み立て、リテラルに展開してから実行する方法 spark.sql(query) もあります。
+# MAGIC ### 1. Volumeへのアクセス
 # MAGIC
-# MAGIC CREATE OR REPLACE TEMPORARY VIEW bronze_data AS
-# MAGIC SELECT 
-# MAGIC   t.* ,
-# MAGIC   -- 監査列として`_datasource`列と`_ingest_timestamp`列を追加
-# MAGIC   _metadata.file_path AS _datasource,
-# MAGIC   current_timestamp() AS _ingest_timestamp
-# MAGIC FROM read_files('/Volumes/trainer_catalog/01_medallion_architecture_for_nssol/src_file_volume_01/Product2.csv',
-# MAGIC   format => 'csv',
-# MAGIC   header => true,
-# MAGIC   delimiter => ',',
-# MAGIC   mode => 'FAILFAST') as t
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- TEMPORARY VIEW の中身を確認
-# MAGIC select * from bronze_data
-# MAGIC limit 10
-# MAGIC ;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- (参考)テーブル情報の確認
-# MAGIC describe extended bronze_data
-# MAGIC ;
-
-# COMMAND ----------
-
-# DBTITLE 1,product2__bronze テーブルへデータを書き込み
-query = f"""
-MERGE INTO {tgt_table_name__1_1_1} AS tgt
-    USING bronze_data AS src
-    ON tgt.Id = src.Id
-    WHEN MATCHED 
-        AND tgt._ingest_timestamp < src._ingest_timestamp THEN
-        UPDATE SET *
-    WHEN NOT MATCHED THEN
-        INSERT *
-"""
-spark.sql(query)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC #### (参考) 冪等性の考慮とMERGE処理について
-# MAGIC Databricksのデータパイプラインでは、再実行しても結果が変わらない「冪等性」を考慮することが重要です。
-# MAGIC パイプラインの処理が失敗した場合に再実行しても、データの重複や不整合が発生しないように設計する必要があります。
+# MAGIC 1. Databricksワークスペースにログインします。
+# MAGIC 2. 左側のナビゲーションペインで「カタログ」をクリックします。
+# MAGIC 3. csvをアップロードしたカタログ、スキーマ、そしてボリュームを選択します。 \
+# MAGIC `x_catalog`カタログ, `default`スキーマ, `src_data`ボリューム。
 # MAGIC
-# MAGIC MERGE文は、以下の理由から冪等性を担保する実装に適しています：
+# MAGIC ### 2. CSVファイルの確認
 # MAGIC
-# MAGIC 1. **アトミックな操作**:
-# MAGIC    - MERGEは、INSERT、UPDATE、DELETEの複数の操作を1つのトランザクション内で実行します。
-# MAGIC    - そのため、途中でエラーが発生した場合でも、すべての操作が一括してロールバックされ、整合性が保たれます。
+# MAGIC 1. 選択したボリュームでCSVファイルを見つけます。 \
+# MAGIC `Product2.csv`と`PricebookEntry.csv`が必要です。
+# MAGIC 2. ファイル名をクリックしてプレビューを表示し、データの構造を確認します。
 # MAGIC
-# MAGIC 2. **条件に基づくデータ同期**:
-# MAGIC    - ソースデータとターゲットテーブルを、キーに基づいて一致させ、必要に応じて更新や挿入、削除を行うため、
-# MAGIC      同じMERGE文を再実行しても、既に正しい状態にあるレコードは更新されず、不要な重複が生じません。
+# MAGIC ### 3. テーブル作成ウィザードの起動
 # MAGIC
-# MAGIC 3. **再実行時の安全性**:
-# MAGIC    - MERGE文は、既に適用済みの変更に対して無駄な操作を行わないため、同じ操作を複数回実行しても
-# MAGIC      テーブルの状態が変わらず、パイプラインの冪等性が確保されます。
+# MAGIC 1. CSVファイルの右側にある「・・・」（その他のオプション）をクリックします。
+# MAGIC 2. ドロップダウンメニューから「Create Table」を選択します。
 # MAGIC
-# MAGIC MERGE文を使用することで、ターゲットテーブルへの挿入・更新・削除を一貫性のある方法で管理し、データパイプラインの再実行時にも問題が発生しないように実装できます。
+# MAGIC ### 4. テーブル情報の設定
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- 取り込んだBronzeデータの確認
-# MAGIC SELECT * FROM product2__bronze;
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### ToDo `pricebook_entry__bronze`のパイプラインを作成してください。
-
-# COMMAND ----------
-
-# 2.取り込むデータファイルを選択のウィジェットから、PricebookEntry.csv を選択してください。
-print(src_file)
-
-# COMMAND ----------
-
-# ソースデータファイルとターゲットテーブルのパスを変数に格納
-
-src_file_path__1_2_1 = f"{volume_dir}/{src_file}"
-tgt_table_name__1_2_1 = f"{catalog_name}.{schema_name}.pricebook_entry__bronze"
-
-# COMMAND ----------
-
-# ToDo CSV の中身をチェック
-# 例1
-data = dbutils.fs.head(src_file_path__1_2_1, 700)
-display(data)
-
-# 例2
-# display(spark.read.format("csv").option("header", "true").load(src_file_path__1_2_1))
-
-# COMMAND ----------
-
-# `pricebook_entry__bronze`テーブルを作成
-create_tbl_ddl = f"""
-CREATE OR REPLACE TABLE {tgt_table_name__1_2_1}
-(
-    `Id` STRING,
-    `Name` STRING,
-    `Pricebook2Id` STRING,
-    `Product2Id` STRING,
-    `UnitPrice` STRING,
-    `IsActive` STRING,
-    `UseStandardPrice` STRING,
-    `CreatedDate` STRING,
-    `CreatedById` STRING,
-    `LastModifiedDate` STRING,
-    `LastModifiedById` STRING,
-    `SystemModstamp` STRING,
-    `ProductCode` STRING,
-    `IsDeleted` STRING,
-    `IsArchived` STRING,
-    _rescued_data STRING,
-    _datasource STRING,
-    _ingest_timestamp timestamp
-)
-USING delta
-"""
-spark.sql(create_tbl_ddl)
-
-# COMMAND ----------
-
-# ソースデータのパスを確認(TEMP VIEW作成時のパス確認用)
-src_file_path__1_2_1
-
-# COMMAND ----------
-
-# DBTITLE 1,csvを読み込み、TEMP VIEWに格納
-# MAGIC %sql
-# MAGIC -- ToDo データソースのcsvを読み込み、TEMP VIEWに格納する処理を記述してください
-# MAGIC -- csvの読み込みの際に、監査用に取り込み元のfile_path と 取り込み時のtimestamp の列を追加してください
+# MAGIC 1. 「Table name」フィールドに新しいテーブルの名前を入力します。 \
+# MAGIC `Product2.csv`は`product2__bronze`, `PricebookEntry.csv`は`pricebook_entry__bronze`がテーブル名となります。
+# MAGIC 2. 「Database」ドロップダウンからテーブルを作成するスキーマを選択します。 \
+# MAGIC 上で作成した`01_medallion_architecture_for_{username}`スキーマを指定しましょう。
 # MAGIC
-# MAGIC CREATE OR REPLACE TEMPORARY VIEW bronze_data AS
-# MAGIC SELECT 
-# MAGIC   t.*,
-# MAGIC   _metadata.file_path as _datasource,
-# MAGIC   current_timestamp() as _ingest_timestamp
-# MAGIC FROM read_files('/Volumes/trainer_catalog/01_medallion_architecture_for_nssol/src_file_volume_01/PricebookEntry.csv',
-# MAGIC   format => 'csv',
-# MAGIC   header => true,
-# MAGIC   delimiter => ',',
-# MAGIC   mode => 'FAILEFAST'
-# MAGIC ) as t
-# MAGIC ;
+# MAGIC ### 5. ファイルフォーマットの確認
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from bronze_data limit 10;
-
-# COMMAND ----------
-
-# ToDo `pricebook_entry__bronze`テーブルへ書き込みを実施してください。
-
-query = f"""
-MERGE INTO {tgt_table_name__1_2_1} as tgt
-    USING bronze_data AS src
-    ON tgt.Id = src.Id
-    WHEN MATCHED 
-        AND tgt._ingest_timestamp < src._ingest_timestamp THEN
-        UPDATE SET *
-    WHEN NOT MATCHED THEN
-        INSERT *
-"""
-
-# クエリの実行
-spark.sql(query)
-
+# MAGIC 1. 「詳細な属性」をクリックし、「File type」が「CSV」に設定されていることを確認します。
+# MAGIC 2. 必要に応じて「区切り文字」、「エスケープ文字」、「ヘッダー」などのオプションを調整します。
+# MAGIC
+# MAGIC ### 7. テーブルの作成
+# MAGIC
+# MAGIC 1. すべての設定を確認したら、画面下部の「テーブルを作成」ボタンをクリックします。
+# MAGIC 2. テーブル作成プロセスが完了するまで待ちます。
+# MAGIC 3. テーブル作成が完了したら、「サンプルデータ」タブをクリックしてテーブルの内容を確認します。
 
 # COMMAND ----------
 
 # MAGIC %sql
 # MAGIC -- データが書き込まれたことを確認
-# MAGIC select * from pricebook_entry__bronze;
+# MAGIC SELECT * FROM product2__bronze;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC -- データが書き込まれたことを確認
+# MAGIC SELECT * FROM pricebook_entry__bronze;
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q2. Silver テーブルのパイプラインを作成してください(標準時間：20分)
-
-# COMMAND ----------
-
-# MAGIC %md
+# MAGIC ## Q2. Silver テーブルを作成してください(標準時間：15分)
+# MAGIC
 # MAGIC 続いて、Silver テーブルを作成します。  
 # MAGIC Silver テーブルは、Bronze に取り込まれたデータからノイズや不整合を取り除き、統合・最適化された高品質なデータセットを生成する処理を行います。  
 # MAGIC
@@ -569,7 +243,6 @@ spark.sql(query)
 # COMMAND ----------
 
 # ソースデータとターゲットテーブルのパスを変数に格納
-
 src_table_name__2_1_1 = f"{catalog_name}.{schema_name}.product2__bronze"
 tgt_table_name__2_1_1 = f"{catalog_name}.{schema_name}.product2__silver"
 
@@ -598,9 +271,7 @@ CREATE OR REPLACE TABLE {tgt_table_name__2_1_1}
     `IsArchived` BOOLEAN,
     `LastViewedDate` TIMESTAMP,
     `LastReferencedDate` TIMESTAMP,
-    `StockKeepingUnit` STRING,
-    _datasource STRING,
-    _ingest_timestamp timestamp
+    `StockKeepingUnit` STRING
 )
 USING delta
 """
@@ -608,115 +279,24 @@ spark.sql(query)
 
 # COMMAND ----------
 
-# DBTITLE 1,シルバーデータの作成
-# 下記の処理を実行したTEMPORARY VIEWを作成する
-## 1. product2__bronzeテーブルから主キー（Id）ごとに_ingest_timestamp列の最大日を抽出したサブセットを作成
-## 2. 主キー＋_ingest_timestamp列の条件で、1のサブセットとproduct2__bronzeテーブルを結合
-## 3. product2__bronzeテーブルのデータ型をシルバーテーブルと同一のデータ型に変換
-
+## `product2__silver`テーブルを作成
+# Id についての重複を削除するため、CreatedDateが最新のレコードを残す
 query = f"""
-WITH slv_records AS (
-  -- 各Idごとに最新の_ingest_timestampを求める
-  SELECT
-    Id,
-    MAX(_ingest_timestamp) AS max_ingest_timestamp
-  FROM {src_table_name__2_1_1}
-  GROUP BY Id
-),
-joined_data AS (
-  -- 最新タイムスタンプのレコードのみを抽出する
-  SELECT
-    brz.Id,
-    brz.Name,
-    brz.ProductCode,
-    brz.Description,
-    CAST(brz.IsActive AS BOOLEAN) AS IsActive,
-    CAST(brz.CreatedDate AS TIMESTAMP) AS CreatedDate,
-    brz.CreatedById,
-    CAST(brz.LastModifiedDate AS TIMESTAMP) AS LastModifiedDate,
-    brz.LastModifiedById,
-    CAST(brz.SystemModstamp AS TIMESTAMP) AS SystemModstamp,
-    brz.Family,
-    brz.ExternalDataSourceId,
-    brz.ExternalId,
-    brz.DisplayUrl,
-    brz.QuantityUnitOfMeasure,
-    CAST(brz.IsDeleted AS BOOLEAN) AS IsDeleted,
-    CAST(brz.IsArchived AS BOOLEAN) AS IsArchived,
-    CAST(brz.LastViewedDate AS TIMESTAMP) AS LastViewedDate,
-    CAST(brz.LastReferencedDate AS TIMESTAMP) AS LastReferencedDate,
-    brz.StockKeepingUnit,
-    brz._datasource,
-    CAST(brz._ingest_timestamp AS TIMESTAMP) AS _ingest_timestamp
-  FROM {src_table_name__2_1_1} AS brz
-  INNER JOIN slv_records AS slv
-    ON brz.Id = slv.Id
-    AND brz._ingest_timestamp = slv.max_ingest_timestamp
-),
-deduped AS (
-  -- 万が一、最新タイムスタンプのレコードが複数存在する場合、1件だけ選ぶ（Id単位で重複排除）
-  SELECT
-    *,
-    ROW_NUMBER() OVER (PARTITION BY Id ORDER BY _ingest_timestamp DESC) AS rn
-  FROM joined_data
-)
--- rn=1 のレコードのみを最終結果として返す
-SELECT
-  Id,
-  Name,
-  ProductCode,
-  Description,
-  IsActive,
-  CreatedDate,
-  CreatedById,
-  LastModifiedDate,
-  LastModifiedById,
-  SystemModstamp,
-  Family,
-  ExternalDataSourceId,
-  ExternalId,
-  DisplayUrl,
-  QuantityUnitOfMeasure,
-  IsDeleted,
-  IsArchived,
-  LastViewedDate,
-  LastReferencedDate,
-  StockKeepingUnit,
-  _datasource,
-  _ingest_timestamp
-FROM deduped
-WHERE rn = 1
+CREATE OR REPLACE TABLE {tgt_table_name__2_1_1} AS
+SELECT *
+FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY Id ORDER BY CreatedDate DESC) as row_num 
+    FROM {src_table_name__2_1_1}
+) tmp 
+WHERE row_num = 1
 """
 
-spark.sql(f"CREATE OR REPLACE TEMPORARY VIEW silver_data AS {query}")
+spark.sql(query)
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC select * from silver_data limit 10;
-
-# COMMAND ----------
-
-# 一時ビューから`product2__silver`に対して、MERGE文によりアップサート処理を実施。
-
-
-query = spark.sql(f'''
-MERGE INTO {tgt_table_name__2_1_1} AS tgt
-  USING silver_data AS src
-  ON tgt.Id = src.Id 
-  WHEN MATCHED
-    AND tgt._ingest_timestamp < src._ingest_timestamp THEN 
-    UPDATE SET *
-  WHEN NOT MATCHED THEN 
-    INSERT *
-''')
-
-
-# COMMAND ----------
-
-# DBTITLE 1,データが書き込まれたことを確認
-# MAGIC %sql
-# MAGIC select * from product2__silver limit 10;
+# MAGIC SELECT * FROM product2__silver
 
 # COMMAND ----------
 
@@ -728,148 +308,35 @@ MERGE INTO {tgt_table_name__2_1_1} AS tgt
 # COMMAND ----------
 
 # ソースデータとターゲットテーブルのパスを変数に格納
-
 src_table_name__2_2_1 = f"{catalog_name}.{schema_name}.pricebook_entry__bronze"
 tgt_table_name__2_2_1 = f"{catalog_name}.{schema_name}.pricebook_entry__silver"
 
 # COMMAND ----------
 
-# Silver テーブルを作成
-spark.sql(
-    f"""
-    CREATE OR REPLACE TABLE {tgt_table_name__2_2_1}
-    (
-        `Id` STRING,
-        `Name` STRING,
-        `Pricebook2Id` STRING,
-        `Product2Id` STRING,
-        `UnitPrice` DECIMAL(16, 0),
-        `IsActive` BOOLEAN,
-        `UseStandardPrice` BOOLEAN,
-        `CreatedDate` TIMESTAMP,
-        `CreatedById` STRING,
-        `LastModifiedDate` TIMESTAMP,
-        `LastModifiedById` STRING,
-        `SystemModstamp` TIMESTAMP,
-        `ProductCode` STRING,
-        `IsDeleted` BOOLEAN,
-        `IsArchived` BOOLEAN,
-        _datasource STRING,
-        _ingest_timestamp timestamp
-    )
-    USING delta
-    """
-)
-
-# COMMAND ----------
-
-# ToDo 下記の処理を実行したデータフレーム（df）を作成してください。
-## 1. `pricebook_entry__bronze`テーブルから主キー（`Id`）ごとに`_ingest_timestamp`列の最大日を抽出したサブセットを作成
-## 2. 主キー＋`_ingest_timestamp`列の条件で、1のサブセットと`pricebook_entry__bronze`テーブルを結合
-## 3. `pricebook_entry__bronze`テーブルのデータ型をシルバーテーブルと同一のデータ型に変換
-
+## ToDo: `pricebook_entry__silver`テーブルを作成
+# Id についての重複を削除するため、CreatedDateが最新のレコードを残す
 query = f"""
-WITH slv_records AS (
-  -- 各Idごとに最新の_ingest_timestampを求める
-  SELECT
-    Id,
-    MAX(_ingest_timestamp) AS max_ingest_timestamp
-  FROM {src_table_name__2_2_1}
-  GROUP BY Id
-),
-joined_data AS (
-  -- 最新タイムスタンプのレコードのみを抽出する
-  SELECT
-    brz.`Id`,
-    brz.`Name`,
-    brz.`Pricebook2Id`,
-    brz.`Product2Id`,
-    brz.`UnitPrice`::DECIMAL(16, 0),
-    brz.`IsActive`::BOOLEAN,
-    brz.`UseStandardPrice`::BOOLEAN,
-    brz.`CreatedDate`::TIMESTAMP,
-    brz.`CreatedById`,
-    brz.`LastModifiedDate`::TIMESTAMP,
-    brz.`LastModifiedById`,
-    brz.`SystemModstamp`::TIMESTAMP,
-    brz.`ProductCode`,
-    brz.`IsDeleted`::BOOLEAN,
-    brz.`IsArchived`::BOOLEAN,
-    brz._datasource,
-    brz._ingest_timestamp::timestamp
-  FROM {src_table_name__2_2_1} AS brz
-  INNER JOIN slv_records AS slv
-    ON brz.Id = slv.Id
-    AND brz._ingest_timestamp = slv.max_ingest_timestamp
-),
-deduped AS (
-  -- 万が一、最新タイムスタンプのレコードが複数存在する場合、1件だけ選ぶ（Id単位で重複排除）
-  SELECT
-    *,
-    ROW_NUMBER() OVER (PARTITION BY Id ORDER BY _ingest_timestamp DESC) AS rn
-  FROM joined_data
-)
--- rn=1 のレコードのみを最終結果として返す
-SELECT
-    `Id`,
-    `Name`,
-    `Pricebook2Id`,
-    `Product2Id`,
-    `UnitPrice`,
-    `IsActive`,
-    `UseStandardPrice`,
-    `CreatedDate`,
-    `CreatedById`,
-    `LastModifiedDate`,
-    `LastModifiedById`,
-    `SystemModstamp`,
-    `ProductCode`,
-    `IsDeleted`,
-    `IsArchived`,
-    _datasource,
-    _ingest_timestamp
-FROM deduped
-WHERE rn = 1
-"""
-
-spark.sql(f"CREATE OR REPLACE TEMPORARY VIEW silver_data AS {query}")
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC -- 結果を確認
-# MAGIC select * from silver_data limit
-# MAGIC  10;
-
-# COMMAND ----------
-
-# ToDo 一時ビューから`pricebook_entry__silver`テーブルに対して、MERGE文によりアップサート処理を実施してください。
-query = f"""
-MERGE INTO {tgt_table_name__2_2_1} AS tgt
-  USING silver_data AS src
-  ON tgt.id = src.id
-  WHEN MATCHED AND tgt._ingest_timestamp < src._ingest_timestamp THEN 
-    UPDATE SET *
-  WHEN NOT MATCHED THEN
-    INSERT *
+CREATE OR REPLACE TABLE {tgt_table_name__2_2_1} AS
+SELECT *
+FROM (
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY Id ORDER BY CreatedDate DESC) as row_num 
+    FROM {src_table_name__2_2_1}
+) tmp 
+WHERE row_num = 1
 """
 
 spark.sql(query)
 
 # COMMAND ----------
 
-# DBTITLE 1,データが書き込まれたことを確認
 # MAGIC %sql
-# MAGIC select * from pricebook_entry__silver limit 10;
+# MAGIC SELECT * FROM pricebook_entry__silver
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q3. Gold Tableのパイプラインを作成してください(標準時間：15分)
-
-# COMMAND ----------
-
-# MAGIC %md
+# MAGIC ## Q3. Gold テーブルを作成してください(標準時間：15分)
+# MAGIC
 # MAGIC Goldテーブルを作成し、業務で利用可能な、信頼できるデータを提供します。  
 # MAGIC
 # MAGIC Goldレイヤは最終的に意思決定やビジネスインサイトを得るためのデータセットが用意される場所です。Silverレイヤで整備されたデータに対して、ビジネスロジックや集計、結合などが適用され、実際の業務や分析に即した「信頼性の高い」データを生成します。
@@ -890,12 +357,10 @@ spark.sql(query)
 
 # MAGIC %md
 # MAGIC ### 実践例
-# MAGIC Pythonを活用してゴールドテーブルを作成します
 
 # COMMAND ----------
 
 # ソースデータとターゲットテーブルのパスを変数に格納
-
 src_table_name__3_1_1 = f"{catalog_name}.{schema_name}.product2__silver"
 tgt_table_name__3_1_1 = f"{catalog_name}.{schema_name}.product_count_by_family"
 
@@ -912,6 +377,7 @@ spark.sql(
 
 # Goldテーブルに書き込むためのデータフレームを作成
 query = f"""
+CREATE OR REPLACE TABLE {tgt_table_name__3_1_1} AS 
 SELECT
   Family,
   COUNT(*) AS product_count
@@ -920,22 +386,12 @@ SELECT
   GROUP BY
     ALL
 """
-df = spark.sql(query)
+spark.sql(query)
 
 # COMMAND ----------
 
-# 処理後の結果を確認
-df.display()
-
-# COMMAND ----------
-
-# `product_count_by_family`テーブルへ書き込み
-df.write.mode("overwrite").saveAsTable(tgt_table_name__3_1_1)
-
-# COMMAND ----------
-
-# データが書き込まれたことを確認
-display(spark.table(tgt_table_name__3_1_1))
+# MAGIC %sql
+# MAGIC SELECT * FROM product_count_by_family
 
 # COMMAND ----------
 
@@ -963,7 +419,6 @@ display(spark.table(tgt_table_name__3_1_1))
 # COMMAND ----------
 
 # データソースとターゲットテーブルのパスを変数に格納
-
 src_table_name__3_2_1 = f"{catalog_name}.{schema_name}.product2__silver"
 src_table_name__3_2_2 = f"{catalog_name}.{schema_name}.pricebook_entry__silver"
 tgt_table_name__3_2_1 = f"{catalog_name}.{schema_name}.d_product"
@@ -980,13 +435,10 @@ spark.sql(
 # COMMAND ----------
 
 # ToDo Goldテーブルに書き込むためのデータフレームを作成してください。
-df = spark.sql(f"""
+spark.sql(f"""
+CREATE OR REPLACE TABLE {tgt_table_name__3_2_1} AS
 SELECT
-  prd.*
-    EXCEPT (
-      _datasource,
-      _ingest_timestamp
-    ),
+  prd.*,
   pbk.UnitPrice
   FROM
     {src_table_name__3_2_1} prd
@@ -998,30 +450,82 @@ SELECT
 
 # COMMAND ----------
 
-# 処理後の結果を確認
-df.display()
-
-# COMMAND ----------
-
-# ToDo `d_product`テーブルへ書き込みを実施してください。
-df.write.mode("append").saveAsTable(tgt_table_name__3_2_1)
-
-# COMMAND ----------
-
-# データが書き込まれたことを確認
-display(spark.table(tgt_table_name__3_2_1))
+# MAGIC %sql
+# MAGIC SELECT * FROM d_product;
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Challenge1. フェデレーションクエリを使ったデータの取り込み
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Challenge2. Databricks Auto Loader によりデータ取り込みを実施してください。
+# MAGIC ## Challenge1. フェデレーションクエリを使ったデータの取り込み(任意)
 # MAGIC
 # MAGIC こちらは Challenge のコンテンツであり、実施は任意です。
+# MAGIC
+# MAGIC Azure SQL ServerをDatabricks Unity Catalogの外部テーブルとして登録し、Federation Queryを発行する方法を以下にステップバイステップで示します。
+# MAGIC 1, 2, 3 のステップはカタログ作成権限が参加者にないため、4から実施してください
+# MAGIC
+# MAGIC ## 1. 外部接続の作成
+# MAGIC
+# MAGIC 1. Databricksワークスペースにログインします。
+# MAGIC 2. SQL Editorを開きます。
+# MAGIC 3. 以下のSQLコマンドを実行して、SQL Serverへの接続を作成します:
+# MAGIC
+# MAGIC ```sql
+# MAGIC CREATE CONNECTION sql_server_connection
+# MAGIC TYPE SQLSERVER
+# MAGIC OPTIONS (
+# MAGIC   host '<your-sql-server-host>',
+# MAGIC   port '1433',
+# MAGIC   user '<your-username>',
+# MAGIC   password '<your-password>',
+# MAGIC   database '<your-database-name>'
+# MAGIC );
+# MAGIC
+# MAGIC ```
+# MAGIC
+# MAGIC ## 2. 外部カタログの登録
+# MAGIC
+# MAGIC 1. 作成した接続を使用して、外部カタログを登録します:
+# MAGIC
+# MAGIC ```sql
+# MAGIC CREATE FOREIGN CATALOG sql_server_catalog
+# MAGIC USING CONNECTION sql_server_connection;
+# MAGIC ```
+# MAGIC
+# MAGIC ## 3. アクセス権の付与
+# MAGIC
+# MAGIC 1. 必要なユーザーまたはグループに外部カタログへのアクセス権を付与します:
+# MAGIC
+# MAGIC ```sql
+# MAGIC GRANT USE CATALOG ON CATALOG sql_server_catalog TO `user@example.com`;
+# MAGIC ```
+# MAGIC
+# MAGIC ## 4. Federation Queryの発行
+# MAGIC
+# MAGIC 1. 登録した外部カタログを使用して、Federation Queryを発行します。例:
+# MAGIC
+# MAGIC ```sql
+# MAGIC SELECT *
+# MAGIC FROM sql_server_catalog.schema_name.table_name
+# MAGIC WHERE condition;
+# MAGIC ```
+# MAGIC
+# MAGIC 2. ローカルのDatabricksテーブルと結合することも可能です:
+# MAGIC
+# MAGIC ```sql
+# MAGIC SELECT t1.*, t2.column_name
+# MAGIC FROM default.local_table t1
+# MAGIC JOIN sql_server_catalog.schema_name.table_name t2
+# MAGIC ON t1.id = t2.id;
+# MAGIC ```
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Challenge2. Auto Loader によるデータの取り込み
+# MAGIC
+# MAGIC こちらは Challenge のコンテンツであり、実施は任意です。
+# MAGIC
+# MAGIC 今回はUIからBronzeテーブルを作成しましたが、本番用途ではオブジェクトストレージで新しいデータファイルを増分的に取り込むためのAuto Loaderという機能でデータを取り込むことが推奨されます。
 # MAGIC
 # MAGIC Databricks Auto Loader（自動ローダー）について詳しく知りたい方は、以下のドキュメントをご参照ください。
 # MAGIC
