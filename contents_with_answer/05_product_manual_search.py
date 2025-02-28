@@ -219,10 +219,6 @@ def split_html_with_h3_p(html, min_chunk_size=20, max_chunk_size=500):
 
 # COMMAND ----------
 
-display(split_html_with_h3_p(html_string))
-
-# COMMAND ----------
-
 # MAGIC %md
 # MAGIC ### ToDo: HTMLファイルのレコードをチャンクへ分割し、`product_documentation`テーブルへ格納
 
