@@ -30,7 +30,7 @@
 # MAGIC %md
 # MAGIC ## (参考)Databricksで新規カタログを作成するSQL実行例
 # MAGIC Databricksで新規カタログを作成するSQL実行例です。  
-# MAGIC **※本日の環境では、皆さんにカタログの作成権限がないため、以下の処理を実行時してもエラーとなります。**
+# MAGIC ※本日の環境では、皆さんにカタログの作成権限がないため、以下の処理を実行時してもエラーとなります。
 
 # COMMAND ----------
 
@@ -83,10 +83,10 @@ dbutils.fs.mkdirs(f"/Volumes/{catalog_name}/{src_schema_name}/{src_volume_name}/
 # MAGIC %md
 # MAGIC ### ソースデータファイルのダウンロードとボリュームへのアップロード
 # MAGIC 1. 現在のノートブックの左型タブにある`Workspace (Ctrl + Alt + E)`を選択し、現在のディレクトリにある`data`フォルダに移動
-# MAGIC 1. `sample_data_01`フォルダのハンバーガーメニュー（`︙`）を選択して、 `ダウンロード形式：` -> `ソースファイル` をクリックしてデータファイルをダウンロード
+# MAGIC 1. `sample_data_01`フォルダのハンバーガーメニュー（`︙`）を選択して、 `export` -> `Source File` をクリックしてデータファイルをダウンロード
 # MAGIC 1. ダウンロードした Zip ファイルを解凍
-# MAGIC 1. 現在のノートブックの左型タブにある`Catalog (Ctrl + Alt + C)`を選択後、`default`スキーマ下にある`src_data` Volume の`sample_data_01`フォルダにてハンバーガーメニュー（`︙`）を選択し、`このボリュームにアップロード`を選択
-# MAGIC 1. 表示されたウィンドウに解凍した CSV ファイルをすべて配置して、`アップロード`を選択
+# MAGIC 1. 現在のノートブックの左型タブにある`Catalog (Ctrl + Alt + C)`を選択後、`default`スキーマ下にある`src_data` Volume の`sample_data_01`フォルダにてハンバーガーメニュー（`︙`）を選択し、`Upload to volume`を選択
+# MAGIC 1. 表示されたウィンドウに解凍した CSV ファイルをすべて配置して、`Upload`を選択
 # MAGIC 1. 下記のセルを実行し、ファイルが配置されていることを確認
 
 # COMMAND ----------

@@ -1,0 +1,13 @@
+CreatedById,CreatedDate,Description,DisplayUrl,ExternalDataSourceId,ExternalId,Family,IsActive,IsArchived,IsDeleted,LastModifiedById,LastModifiedDate,LastReferencedDate,LastViewedDate,Name,ProductCode,QuantityUnitOfMeasure,StockKeepingUnit,SystemModstamp,id
+32,2024-01-14,Low-End ARM PC,,,,Low-End,1,0,0,2,2024-03-05,,,Low-End ARM PC,PRD-76796,,,2024-06-13,1
+51,2024-01-24,Middle-End ARM PC,,,,Middle-End,1,0,0,37,2024-07-16,,,Middle-End ARM PC,PRD-42807,,,2024-01-07,2
+42,2024-02-14,High-End ARM PC,,,,High-End,1,0,0,72,2024-07-31,,,High-End ARM PC,PRD-44909,,,2024-05-12,3
+65,2024-03-14,Low-End x86 PC,,,,Low-End,1,0,0,69,2024-04-27,,,Low-End x86 PC,PRD-52269,,,2024-04-07,4
+90,2024-01-20,Middle-End x86 PC,,,,Middle-End,1,0,0,28,2024-04-17,,,Middle-End x86 PC,PRD-53546,,,2024-01-16,5
+8,2024-02-14,High-End x86 PC,,,,High-End,1,0,0,108,2024-04-20,,,High-End x86 PC,PRD-11990,,,2024-01-30,6
+53,2024-05-09,Low-End ARM Tablet,,,,Low-End,1,0,0,117,2024-01-15,,,Low-End ARM Tablet,PRD-41293,,,2024-03-25,7
+137,2024-07-31,Middle-End ARM Tablet,,,,Middle-End,1,0,0,24,2024-06-13,,,Middle-End ARM Tablet,PRD-39309,,,2024-02-07,8
+172,2024-07-30,High-End ARM Tablet,,,,High-End,1,0,0,66,2024-07-01,,,High-End ARM Tablet,PRD-14109,,,2024-04-16,9
+154,2024-07-09,Low-End ARM Smartphone,,,,Low-End,1,0,0,158,2024-03-16,,,Low-End ARM Smartphone,PRD-20542,,,2024-08-06,10
+76,2024-06-12,Middle-End ARM Smartphone,,,,Middle-End,1,0,0,151,2024-01-19,,,Middle-End ARM Smartphone,PRD-31544,,,2024-03-03,11
+110,2024-04-18,High-End ARM Smartphone,,,,High-End,1,0,0,36,2024-04-18,,,High-End ARM Smartphone,PRD-57239,,,2024-01-19,12

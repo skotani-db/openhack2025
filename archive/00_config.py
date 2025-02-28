@@ -12,8 +12,8 @@
 
 # DBTITLE 1,チーム名、ユーザー名を設定
 # チーム名、及び、ユーザー名を設定
-team_name = "trainer_catalog"  ## team_name はカタログ名となる
-user_name = "shotkotani"  ## user_name はスキーマ名の一部となる
+team_name = "nssol_test"  ## team_name はカタログ名となる
+user_name = "yoshimura"  ## user_name はスキーマ名の一部となる
 print(f"user_name: `{user_name}`")
 
 # 利用するカタログ名を設定
@@ -26,7 +26,3 @@ print(f"catalog_name: `{catalog_name}`")
 src_volume_name = "src_data"
 src_schema_name = "default"
 src_folder_name = "sample_data_01"
-
-# COMMAND ----------
-
-

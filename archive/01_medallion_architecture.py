@@ -78,6 +78,12 @@
 
 # COMMAND ----------
 
+# 本ノートブックで利用するスキーマ
+schema_name = f"01_medallion_architecture_for_{user_name}"
+print(f"schema_name: `{schema_name}`")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC 本ノートブックで作業するために以下の処理を行います。
 # MAGIC - スキーマ作成
@@ -101,12 +107,6 @@
 # MAGIC 7. 「作成」ボタンをクリックしてスキーマを作成します。
 # MAGIC
 # MAGIC 8. 必要に応じて、スキーマに対する権限が付与されていることを確認します。
-
-# COMMAND ----------
-
-# 本ノートブックで利用するスキーマ
-schema_name = f"01_medallion_architecture_for_{user_name}"
-print(f"schema_name: `{schema_name}`")
 
 # COMMAND ----------
 
