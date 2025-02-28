@@ -248,37 +248,6 @@ tgt_table_name__2_1_1 = f"{catalog_name}.{schema_name}.product2__silver"
 
 # COMMAND ----------
 
-# `product2__silver`テーブルを作成
-query = f"""
-CREATE OR REPLACE TABLE {tgt_table_name__2_1_1}
-(
-    `Id` STRING,
-    `Name` STRING,
-    `ProductCode` STRING,
-    `Description` STRING,
-    `IsActive` BOOLEAN,
-    `CreatedDate` TIMESTAMP,
-    `CreatedById` STRING,
-    `LastModifiedDate` TIMESTAMP,
-    `LastModifiedById` STRING,
-    `SystemModstamp` TIMESTAMP,
-    `Family` STRING,
-    `ExternalDataSourceId` STRING,
-    `ExternalId` STRING,
-    `DisplayUrl` STRING,
-    `QuantityUnitOfMeasure` STRING,
-    `IsDeleted` BOOLEAN,
-    `IsArchived` BOOLEAN,
-    `LastViewedDate` TIMESTAMP,
-    `LastReferencedDate` TIMESTAMP,
-    `StockKeepingUnit` STRING
-)
-USING delta
-"""
-spark.sql(query)
-
-# COMMAND ----------
-
 ## `product2__silver`テーブルを作成
 # Id についての重複を削除するため、CreatedDateが最新のレコードを残す
 query = f"""
