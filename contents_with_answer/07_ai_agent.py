@@ -73,8 +73,16 @@
 # MAGIC - モデルサービングエンドポイントへのデプロイにより、本番環境での利用が簡単になります
 # MAGIC
 # MAGIC ### 注意
-# MAGIC エクスポートされたコードは AI Playground セッションとは異なる動作をする可能性があります。<br>
-# MAGIC 1. `driver` ノートブックのセル3でインストールするlanggraphのバージョンを以下のように固定してください
+# MAGIC エクスポートされたコードを AI Playground セッション と同じように動作させるためには以下の手順を実行する必要があります<br>
+# MAGIC
+# MAGIC 1. セル1において、`catalog`, `schema`, `model_name`を指定します。
+# MAGIC ```
+# MAGIC catalog = "{team}_catalog"
+# MAGIC schema = "07_ai_agent_for_{username}"
+# MAGIC model_name = "manual_agent"
+# MAGIC ```
+# MAGIC
+# MAGIC 2. `driver` ノートブックのセル3でインストールするlanggraphのバージョンを以下のように固定してください
 # MAGIC ```langgraph==0.2.74```
 # MAGIC
 # MAGIC 2. セル11においてlanggraphバージョンを固定してください。
