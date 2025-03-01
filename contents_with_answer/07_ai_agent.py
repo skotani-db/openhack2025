@@ -183,7 +183,7 @@
 # MAGIC
 # MAGIC 11. 8で開いたアプリの詳細ページへ戻り、実行中と表示されているURLをクリックして、実際にアプリを使用してみましょう！
 # MAGIC
-# MAGIC ### 小ネタ
+# MAGIC ### 変更が必要な理由
 # MAGIC デフォルトの処理では、Databricks SDK の Workspace Client から Model Serving Endpoint へクエリをしていました。 <br>
 # MAGIC しかし、`databricks.sdk.service.serving.Servingendpoints`のドキュメントは、パスするパラメータが明示的でなく、混乱されるユーザーが多いです。
 # MAGIC したがって、`mlflow.deployments`の Client からクエリをすることを推奨します。 <br>
