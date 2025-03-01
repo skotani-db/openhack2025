@@ -97,11 +97,16 @@
 # MAGIC         ]
 # MAGIC ```
 # MAGIC
-# MAGIC 3. セル11において、mlflowのモデルが権限を持つ必要があるリソースを指定する必要があります。`mlflow.models.resources`のモジュールからエンドポイントとベクトルサーチインデックスを指定します。
+# MAGIC 3. セル11において、mlflowのモデルが権限を持つ必要があるリソースを指定する必要があります。 <br>
+# MAGIC `mlflow.models.resources`のモジュールで、Databricksのリソースを指定することができます。 <br>
+# MAGIC デフォルトで生成されたノートブックでは`DatabricksVectorSearchIndex`が含まれていないので追加しましょう。
 # MAGIC ```
 # MAGIC from mlflow.models.resources import DatabricksFunction, DatabricksServingEndpoint, DatabricksVectorSearchIndex
 # MAGIC ```
-# MAGIC 4. セル11において、DatabricksVectorSearchIndex のリソースを追加します。カタログとスキーマを埋めましょう。
+# MAGIC 4. セル11において、Agentがアクセスする必要のあるリソース一覧を定義します。 <br>
+# MAGIC これによってModel Servingでホストされているモデルがローカルと同様にリソースへアクセスできます。 <br>
+# MAGIC 具体的には、ベクトルサーチのインデックスおよび検索の関数、埋め込みと生成のエンドポイントが必要です。 <br>
+# MAGIC ベクトルサーチインデックスはカタログ名とスキーマ名を入力してから追加しましょう。
 # MAGIC ```
 # MAGIC resources = [
 # MAGIC     DatabricksServingEndpoint(endpoint_name=LLM_ENDPOINT_NAME), 
@@ -125,21 +130,64 @@
 # MAGIC
 # MAGIC 4. アプリの名前を入力します。例えば「chatbot-agent」などです。
 # MAGIC
-# MAGIC 5. アプリのテンプレートとして「Chatbot」または類似のオプションを選択します。
+# MAGIC 5. アプリのテンプレートとして「Chatbot」のオプションを選択します。
 # MAGIC
-# MAGIC 6. アプリの設定画面で、以下の情報を入力します:
-# MAGIC    - アプリの説明
-# MAGIC    - 
-# MAGIC    - 環境変数（必要に応じて）
+# MAGIC 6. エージェントのエンドポイントを指定します。
 # MAGIC
-# MAGIC 7. エージェントのエンドポイントを指定します。
+# MAGIC 7. 設定が完了したら、「デプロイ」または「作成」ボタンをクリックします。
 # MAGIC
-# MAGIC 8. MLflow ChatModelを使用してagentを実装していることを確認します。これにより、Databricks AI Agent機能との互換性が確保されます。
+# MAGIC 8. デプロイが完了すると、アプリの詳細ページが表示されます。ここでステータスや公開URLを確認できます。
 # MAGIC
-# MAGIC 9. 設定が完了したら、「デプロイ」または「作成」ボタンをクリックします。
+# MAGIC 9. 「デプロイメント」セクションに表示されているアプリのコードが保存されているURLをクリックします。
 # MAGIC
-# MAGIC 10. デプロイが完了すると、アプリの詳細ページが表示されます。ここでステータスや公開URLを確認できます。
+# MAGIC 10. ワークスペースのエクスプローラーで`app.py`を開き、`query_llm`関数を以下のように丸ごと置換します。
 # MAGIC
-# MAGIC 11. アプリのテストを行い、必要に応じて設定やコードを調整します。
+# MAGIC ```
+# MAGIC def query_llm(message, history):
+# MAGIC     """
+# MAGIC     Query the LLM with the given message and chat history.
+# MAGIC     """
+# MAGIC     from mlflow.deployments import get_deploy_client
+# MAGIC     # Initialize the mlflow deployment client
+# MAGIC     client = get_deploy_client("databricks")
+# MAGIC     
+# MAGIC     if not message.strip():
+# MAGIC         return "ERROR: The question should not be empty"
 # MAGIC
-# MAGIC 12. 公開の準備ができたら、アクセス権限を設定し、公開URLを通じてユーザーがアプリにアクセスできるようにします。
+# MAGIC     prompt = "Answer this question like a helpful assistant: "
+# MAGIC     messages = prompt + message
+# MAGIC
+# MAGIC     try:
+# MAGIC         logger.info(f"Sending request to model endpoint: {os.getenv('SERVING_ENDPOINT')}")
+# MAGIC         input_data = {
+# MAGIC             "dataframe_records": [
+# MAGIC                 {
+# MAGIC                     "messages": [
+# MAGIC                         {
+# MAGIC                             "role": "user",
+# MAGIC                             "content": messages
+# MAGIC                         }
+# MAGIC                     ]
+# MAGIC                 }
+# MAGIC             ]
+# MAGIC         }
+# MAGIC
+# MAGIC         response = client.predict(endpoint=os.getenv('SERVING_ENDPOINT'), inputs=input_data)
+# MAGIC         return response["predictions"]["messages"][-1]["content"]
+# MAGIC     
+# MAGIC     except Exception as e:
+# MAGIC         logger.error(f"Error querying model: {str(e)}", exc_info=True)
+# MAGIC         return f"Error: {str(e)}"
+# MAGIC
+# MAGIC ```
+# MAGIC
+# MAGIC 11. 8で開いたアプリの詳細ページへ戻り、実行中と表示されているURLをクリックして、実際にアプリを使用してみましょう！
+# MAGIC
+# MAGIC ### 小ネタ
+# MAGIC デフォルトの処理では、Databricks SDK の Workspace Client から Model Serving Endpoint へクエリをしていました。 <br>
+# MAGIC しかし、`databricks.sdk.service.serving.Servingendpoints`のドキュメントは、パスするパラメータが明示的でなく、混乱されるユーザーが多いです。
+# MAGIC したがって、`mlflow.deployments`の Client からクエリをすることを推奨します。 <br>
+# MAGIC
+# MAGIC [Databricks SDK](https://databricks-sdk-py.readthedocs.io/en/stable/workspace/serving/serving_endpoints.html#databricks.sdk.service.serving.ServingEndpointsExt.query) <br>
+# MAGIC [mlflw deployments](https://mlflow.org/docs/latest/python_api/mlflow.deployments.html#mlflow.deployments.DatabricksDeploymentClient.predict) <br>
+# MAGIC [mlflow deployments チュートリアル](https://mlflow.org/docs/latest/llms/deployments/guides/step2-query-deployments.html)
