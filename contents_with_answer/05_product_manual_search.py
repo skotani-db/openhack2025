@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # プロダクトマニュアルをVector Search Indexで検索可能な状態にする(標準時間:30分)
+# MAGIC # プロダクトマニュアルをVector Search Indexで検索可能な状態にする(標準時間:40分)
 
 # COMMAND ----------
 

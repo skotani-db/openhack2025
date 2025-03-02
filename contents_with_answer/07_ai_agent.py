@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # 起票されたケースの解決策を示すAgentを作成する(標準時間:60分)
+# MAGIC # 起票されたケースの解決策を示すAgentを作成する(標準時間:80分)
 
 # COMMAND ----------
 
@@ -19,6 +19,8 @@
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ✅この手順は班の**皆さん**で実行しましょう
+# MAGIC
 # MAGIC Databricks の AI Playground を使用して、`openhack-gpt-4o` エンドポイントと `manual_retriever` ツールを登録し、ringo computer のマニュアルに関する質問に答えるエージェントを作成する手順は以下の通りです:
 # MAGIC
 # MAGIC 1. Databricks ワークスペースにログインし、左側のナビゲーションから [機械学習] > [Playground] を選択します。
@@ -55,7 +57,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q2. driver ノートブックの実行(標準時間：10分)
+# MAGIC ## Q2. driver ノートブックの実行(標準時間：30分)
 
 # COMMAND ----------
 
@@ -134,20 +136,20 @@
 # MAGIC     ]
 # MAGIC ```
 # MAGIC 7. 最後のセルで Model Serving エンドポイントと Review App が作れたら完了です。<br>
-# MAGIC Model Serving エンドポイントの初期作成には少し時間がかかるので、休憩を取ったり
-# MAGIC [本番環境でのエージェントの評価のドキュメント](https://learn.microsoft.com/ja-jp/azure/databricks/generative-ai/agent-evaluation/evaluating-production-traffic)を見ながら、エージェントの品質を監視、改善していく取り組みについて考えましょう。
+# MAGIC Model Serving エンドポイントの初期作成には少し時間がかかるので、休憩を取ったり。
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q3. Review Apps による評価
+# MAGIC ## Q3. Review Apps による評価(標準時間：20分)
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ✅この手順は班の**皆さん**で実行しましょう
 # MAGIC
-# MAGIC driver ノートブックをランスルーして最後のセルを実行すると、`Review Apps`が起動します。
+# MAGIC driver ノートブックをランスルーして最後のセルを実行すると、`Review Apps`が起動します。<br>
+# MAGIC
 # MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/review_app_url.png)
 # MAGIC
 # MAGIC Databricks Review Appsは、AIアプリケーションの品質評価を効率的に行うためのツールです。その概要と意義、および評価手順は以下の通りです:
@@ -163,36 +165,40 @@
 # MAGIC
 # MAGIC #### 生成評価
 # MAGIC
-# MAGIC 1. **ボットをテストする**タブでAIとチャットを開始する
-# MAGIC 2. AIの回答を評価し、「はい」「いいえ」「わからない」から選択する
-# MAGIC 3. 必要に応じて回答を直接編集する
-# MAGIC 4. 追加情報や具体的なフィードバックを提供する
+# MAGIC 1. **ボットをテストする**タブでAIとチャットを開始します
+# MAGIC 2. 以下のようなサンプル質問をAgentに聞いてみましょう
+# MAGIC    - "電源の入れ方を教えてください。"
+# MAGIC    - "メモリを増設する方法は？"
+# MAGIC    - "OSをアップデートする手順を説明してください。"
+# MAGIC 3. AIの回答を評価し、「はい」「いいえ」「わかりません」から選択します。できるだけ理由のチェックボックスを選択して評価するようにしましょう。
+# MAGIC 3. 必要に応じて「✏️応答を編集」から回答を直接編集します
+# MAGIC 4. 必要に応じて追加情報や具体的なフィードバックを提供する
 # MAGIC
 # MAGIC #### 検索評価
 # MAGIC
-# MAGIC 1. `retrieved_context`からチャンクを確認する
-# MAGIC 2. 関連性の高いチャンクに対して「サムズアップ👍」を選択する
-# MAGIC 3. 選択されたチャンクの`doc_uri`が質問の`expected_retrieved_context`に含まれる
+# MAGIC 1. ソースに表示されている参考情報をクリックします
+# MAGIC 2. 検索結果が疑問の解決に役立つか「はい」「いいえ」「わかりません」で評価します。
 # MAGIC
 # MAGIC #### 評価データの記録
 # MAGIC
-# MAGIC 1. 👍（親指を立てた）リクエスト:
-# MAGIC    - `request`: ユーザーの入力
-# MAGIC    - `expected_response`: ユーザーが編集した応答、または編集がない場合はモデルの生成した応答
+# MAGIC アセスメント結果はどこに保存されているでしょうか？<br>
+# MAGIC 推論テーブルという機能によって、自動でリクエストやレスポンス、またアセスメント結果が記録されています。
+# MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/review_tables.png)
 # MAGIC
-# MAGIC 2. 👎（親指を下げた）リクエスト:
-# MAGIC    - `request`: ユーザーの入力
-# MAGIC    - `expected_response`: ユーザーが編集した応答、または編集がない場合はnull
+# MAGIC 推論テーブルの詳細は以下の通りです。
 # MAGIC
-# MAGIC 3. フィードバックのないリクエスト:
-# MAGIC    - `request`: ユーザーの入力
+# MAGIC | テーブル | Unity Catalog 上のテーブル名 | 説明 |
+# MAGIC |-------|----------------------------------|------------------------|
+# MAGIC | Payload | `{catalog_name}.{schema_name}.{model_name}_payload` | 生のJSONリクエストとレスポンス |
+# MAGIC | Payload request logs | `{catalog_name}.{schema_name}.{model_name}_payload_request_logs` | フォーマットされたリクエストとレスポンス, MLflow トレース |
+# MAGIC | Payload assessment logs | `{catalog_name}.{schema_name}.{model_name}_payload_assessment_logs` | リクエストごとにフォーマットされたReview Appsのアセスメントログ |
 # MAGIC
-# MAGIC これらの手順により、AIアプリケーションの品質向上と、人間のフィードバックを効果的に収集・分析することが可能になります。Databricksは評価セットに少なくとも30の質問を含めることを推奨しています。
+# MAGIC これらのテーブルを分析することによって、エージェントの性能のボトルネックの特定を行い、改善のアイデアを得ます。
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q4. Databricks Apps との連携
+# MAGIC ## Q4. Databricks Apps との連携(標準時間：10分)
 
 # COMMAND ----------
 
@@ -207,7 +213,7 @@
 # MAGIC
 # MAGIC 3. 「新規アプリの作成」ボタンをクリックします。
 # MAGIC
-# MAGIC 4. アプリの名前を入力します。例えば「chatbot-agent」などです。
+# MAGIC 4. アプリの名前を入力します。例えば「chatbot-agent_{x}」などです。xにはチームのアルファベットを入力します。
 # MAGIC
 # MAGIC 5. アプリのテンプレートとして「Chatbot」のオプションを選択します。
 # MAGIC
@@ -262,7 +268,7 @@
 # MAGIC
 # MAGIC 11. 8で開いたアプリの詳細ページへ戻り、実行中と表示されているURLをクリックして、実際にアプリを使用してみましょう！
 # MAGIC
-# MAGIC ### 変更が必要な理由
+# MAGIC ### TIPS
 # MAGIC デフォルトの処理では、Databricks SDK の Workspace Client から Model Serving Endpoint へクエリをしていました。 <br>
 # MAGIC しかし、`databricks.sdk.service.serving.Servingendpoints`のドキュメントは、パスするパラメータが明示的でなく、混乱されるユーザーが多いです。
 # MAGIC したがって、`mlflow.deployments`の Client からクエリをすることを推奨します。 <br>
@@ -270,3 +276,49 @@
 # MAGIC [Databricks SDK](https://databricks-sdk-py.readthedocs.io/en/stable/workspace/serving/serving_endpoints.html#databricks.sdk.service.serving.ServingEndpointsExt.query) <br>
 # MAGIC [mlflw deployments](https://mlflow.org/docs/latest/python_api/mlflow.deployments.html#mlflow.deployments.DatabricksDeploymentClient.predict) <br>
 # MAGIC [mlflow deployments チュートリアル](https://mlflow.org/docs/latest/llms/deployments/guides/step2-query-deployments.html)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Challenge. 推論テーブルの分析によるエージェントのモニタリング
+# MAGIC 推論テーブルからエージェントの改善ポイントを抽出したり、実際の運用状況をモニタリングしてみましょう！<br>
+# MAGIC [エージェント評価を行うサンプルコード](https://docs.databricks.com/_extras/notebooks/source/generative-ai/agent-evaluation-online-monitoring-notebook.html)を実行して、エージェント運用、アセスメント結果のモニタリングを行うダッシュボードを作成します。<br>
+# MAGIC ### ダッシュボードの構成
+# MAGIC - エンドポイント使用状況のモニタリング
+# MAGIC - アセスメント結果（生成、検索）
+# MAGIC - LLM as a Judge によるレスポンス評価
+# MAGIC
+# MAGIC ![](https://learn.microsoft.com/ja-jp/azure/databricks/_static/images/generative-ai/online-monitoring-dashboard.gif)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Challenge. 自律的なAgentの作成
+# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ✅この手順は班の**皆さん**で実行しましょう
+# MAGIC
+# MAGIC Databricks の AI Playground を使用して、`openhack-gpt-4o` エンドポイントと `manual_retriever`, `get_high_priority_new_cases`ツールを登録し、起票されたケースから特に解決するべきものに対して、ringo computer のマニュアルに参考に回答の素案を作成するエージェントを作成します。手順は以下の通りです:
+# MAGIC
+# MAGIC 1. Databricks ワークスペースにログインし、左側のナビゲーションから [機械学習] > [Playground] を選択します。
+# MAGIC
+# MAGIC 2. AI Playground の画面で、左上のドロップダウンメニューから `openhack-gpt-4o` エンドポイントを選択します。
+# MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/endpoint_selection.png)
+# MAGIC
+# MAGIC 3. [ツール] セクションを探し、`manual_retriever`と`get_high_priority_new_cases`ツールを選択します。このツールが表示されない場合は、カスタムツールとして追加する必要があります。
+# MAGIC
+# MAGIC 4. システムプロンプトを設定します。例えば:
+# MAGIC    "あなたは ringo computer のマニュアルに関する質問に答えるエキスパートです。解決するべき優先度の高いケースを`get_high_priority_new_cases`ツールを使用して抽出し、`manual_retriever` ツールを使用して、適切な情報を取得し、ケースの回答の素案を作成してください。"
+# MAGIC    ![](/Workspace/Shared/contents_with_answer/data/img/export_notebook.png)
+# MAGIC
+# MAGIC 5. チャットインターフェースを使用して、エージェントとの対話をテストします。以下のようなサンプル質問を試してみましょう:
+# MAGIC    - "直近解決すべきケースの回答の素案を作成してください"
+# MAGIC
+# MAGIC 6. エージェントの応答を確認し、必要に応じてシステムプロンプトや設定を調整します。
+# MAGIC
+# MAGIC 7. 必要に応じてQ2と同様にコードを編集して、エージェントを実行できるようにします。
+# MAGIC
+# MAGIC
