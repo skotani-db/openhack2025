@@ -9,7 +9,9 @@
 # MAGIC Q1. RAG Agent の構築<br>
 # MAGIC Q2. Driver Notebookの実行とReview Apps による評価<br>
 # MAGIC Q3. Review Apps による評価<br>
-# MAGIC Q4. Databricks Apps との連携
+# MAGIC Q4. Databricks Apps との連携<br>
+# MAGIC Challenge 1. 推論テーブルの分析によるエージェントのモニタリング<br>
+# MAGIC Challenge 2. 自律的なAgentの作成
 
 # COMMAND ----------
 
@@ -312,7 +314,6 @@
 # MAGIC
 # MAGIC 4. システムプロンプトを設定します。例えば:
 # MAGIC    "あなたは ringo computer のマニュアルに関する質問に答えるエキスパートです。解決するべき優先度の高いケースを`get_high_priority_new_cases`ツールを使用して抽出し、`manual_retriever` ツールを使用して、適切な情報を取得し、ケースの回答の素案を作成してください。"
-# MAGIC    ![](/Workspace/Shared/contents_with_answer/data/img/export_notebook.png)
 # MAGIC
 # MAGIC 5. チャットインターフェースを使用して、エージェントとの対話をテストします。以下のようなサンプル質問を試してみましょう:
 # MAGIC    - "直近解決すべきケースの回答の素案を作成してください"
