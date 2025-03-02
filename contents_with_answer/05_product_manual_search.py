@@ -491,8 +491,8 @@ CREATE OR REPLACE FUNCTION {catalog_name}.common.manual_retriever (
 ) RETURNS TABLE
 COMMENT 'Executes a search on product documentation to retrieve text documents most relevant to the input query.' RETURN
 SELECT
-  id as id,
-  content
+  content as page_content,
+  map('doc_uri', filename, 'chunk_id', CAST(id AS STRING)) as metadata
 FROM
   vector_search(
     index => '{vs_index_fullname}',
@@ -511,7 +511,12 @@ from databricks_langchain import VectorSearchRetrieverTool
 vs_tool = VectorSearchRetrieverTool(
   index_name=vs_index_fullname,
   tool_name="manual_retriever",
-  tool_description="Ringo Computerの製品マニュアルを検索するツールです"
+  tool_description="Ringo Computerの製品マニュアルを検索するツールです",
+  columns=["id", "filename"]
 )
 
 vs_tool.invoke("バッテリー交換")
+
+# COMMAND ----------
+
+
