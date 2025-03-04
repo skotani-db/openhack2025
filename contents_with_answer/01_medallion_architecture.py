@@ -520,6 +520,12 @@ SELECT
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC -- Challenge1.ToDo 外部カタログ`sqlserver_catalog` の ringo スキーマのテーブルにクエリ(SELECT)を発行し、 SQL Server からデータを取得してください 
+# MAGIC
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Challenge2. Auto Loader によるデータの取り込み
 # MAGIC
