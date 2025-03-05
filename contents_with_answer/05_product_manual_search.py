@@ -279,7 +279,7 @@ def parse_and_split(docs: pd.Series) -> pd.Series:
 
 # MAGIC %md
 # MAGIC ### ベクトル検索とは
-# MAGIC ![ベクトル検索とは](/Workspace/Users/shotaro.kotani@nssoldlp.onmicrosoft.com/openhack2025/contents_with_answer/dev_shotkotani/data/img/vector_index.png)
+# MAGIC ![ベクトル検索とは](/Workspace/Shared/contents_with_answer/data/img/vector_index.png)
 # MAGIC
 # MAGIC この画像は、ベクトル検索の概念をわかりやすく表現しています。
 # MAGIC
