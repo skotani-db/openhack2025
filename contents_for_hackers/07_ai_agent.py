@@ -35,7 +35,6 @@
 # MAGIC
 # MAGIC 4. システムプロンプトを設定します。例えば:
 # MAGIC    "あなたは ringo computer のマニュアルに関する質問に答えるエキスパートです。manual_retriever ツールを使用して、適切な情報を取得し、ユーザーの質問に答えてください。"
-# MAGIC    ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/export_notebook.png)
 # MAGIC
 # MAGIC 5. チャットインターフェースを使用して、エージェントとの対話をテストします。以下のようなサンプル質問を試してみましょう:
 # MAGIC    - "電源の入れ方を教えてください。"
@@ -45,6 +44,7 @@
 # MAGIC 6. エージェントの応答を確認し、必要に応じてシステムプロンプトや設定を調整します。
 # MAGIC
 # MAGIC 7. エージェントの動作に満足したら、画面右上の [エクスポート] ボタンをクリックします。
+# MAGIC    ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/export_notebook.png)
 # MAGIC
 # MAGIC 8. エクスポートされたノートブックには以下のファイルが含まれます:
 # MAGIC    - `agent` ノートブック: LangChain を使用してエージェントを定義する Python コード
@@ -139,6 +139,7 @@
 # MAGIC     ]
 # MAGIC ```
 # MAGIC 7. 最後のセルで Model Serving エンドポイントと Review App が作れたら完了です。<br>
+# MAGIC Model Serving エンドポイントの作成が完了したら、エンドポイントの詳細ページに行って、班全員に「Can Query」の権限を付与してください。<br>
 # MAGIC Model Serving エンドポイントの初期作成には少し時間がかかるので、休憩を取りましょう。
 
 # COMMAND ----------
