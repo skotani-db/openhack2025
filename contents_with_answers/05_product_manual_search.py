@@ -160,6 +160,8 @@ html_string = """
 
 # COMMAND ----------
 
+# 処理の詳細についてはここでは深く触れません
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from bs4 import BeautifulSoup
 from transformers import OpenAIGPTTokenizer
@@ -360,7 +362,6 @@ deploy_client = mlflow.deployments.get_deploy_client("databricks")
 
 # OpenAI の text-embedding-ada-002 を使用（エンベディング生成）を実行
 # エンドポイント "openhack-text-embedding-ada-002" に対して、"What is Apache Spark?" という入力テキストを渡す
-# Answer:
 response = deploy_client.predict(
     endpoint="openhack-text-embedding-ada-002",
     inputs={"input": ["Apache Spark とはなんでしょう?"]}
@@ -439,13 +440,14 @@ vsc.list_endpoints()
 # MAGIC     * インデックス作成完了後、作成したインデックスを他の方が検索できるようにするため、カタログで`product_documentation_vs`の詳細を開きます
 # MAGIC     * `権限`タブから`SELECT`権限を班全員に付与します
 # MAGIC
-# MAGIC ✅以降のステップは班全員で実行することができるようになっています
+# MAGIC ✅以降のノートブックのセルは班全員で実行することができるようになっています
 
 # COMMAND ----------
 
 # インデックスの作成を確認
 VECTOR_SEARCH_INDEX_NAME = "product_documentation_vs"
-vs_index_fullname = f"{catalog_name}.{schema_name}.{VECTOR_SEARCH_INDEX_NAME}"
+vs_schema_name = {schema_name}
+vs_index_fullname = f"{catalog_name}.{vs_schema_name}.{VECTOR_SEARCH_INDEX_NAME}"
 
 index = vsc.get_index(VECTOR_SEARCH_ENDPOINT_NAME, vs_index_fullname)
 index.describe()

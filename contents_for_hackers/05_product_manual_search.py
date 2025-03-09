@@ -160,6 +160,8 @@ html_string = """
 
 # COMMAND ----------
 
+# 処理の詳細についてはここでは深く触れません
+
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from bs4 import BeautifulSoup
 from transformers import OpenAIGPTTokenizer
@@ -333,9 +335,10 @@ deploy_client = mlflow.deployments.get_deploy_client("databricks")
 # OpenAI の text-embedding-ada-002 を使用（エンベディング生成）を実行
 # エンドポイント "openhack-text-embedding-ada-002" に対して、"What is Apache Spark?" という入力テキストを渡す
 # Hint: https://mlflow.org/docs/latest/llms/deployments/guides/step2-query-deployments/#example-3-embeddings
-
-# Todo:
-response = <ToDo: deploy_clientを使用して、埋め込みの生成を実行する>
+response = deploy_client.predict(
+    endpoint="openhack-text-embedding-ada-002",
+    inputs={"input": ["Apache Spark とはなんでしょう?"]}
+)
 
 # 結果を取得
 embeddings = [e["embedding"] for e in response.data]
@@ -403,7 +406,7 @@ vsc.list_endpoints()
 # MAGIC     * インデックス作成完了後、作成したインデックスを他の方が検索できるようにするため、カタログで`product_documentation_vs`の詳細を開きます
 # MAGIC     * `権限`タブから`SELECT`権限を班全員に付与します
 # MAGIC
-# MAGIC ✅以降のステップは班全員で実行することができるようになっています
+# MAGIC ✅以降のノートブックのセルは班全員で実行することができるようになっています
 
 # COMMAND ----------
 
