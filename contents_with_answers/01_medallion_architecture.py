@@ -425,7 +425,7 @@ SELECT
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Challenge1. フェデレーションクエリを使ったデータの取り込み(任意)
+# MAGIC ## Challenge. フェデレーションクエリを使ったデータの取り込み(任意)
 # MAGIC
 # MAGIC こちらは Challenge のコンテンツであり、実施は任意です。
 # MAGIC

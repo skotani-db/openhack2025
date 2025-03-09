@@ -396,7 +396,7 @@ spark.sql(
 # COMMAND ----------
 
 # ToDo Goldテーブルに書き込むためのデータフレームを作成してください。
-# Product2をベースに、pricebook_entryにあるUnitPriceを追加したデータのテーブルを作成
+# Product2をベースに、pricebook_entryにあるUnitPrice列を追加したデータのテーブルを作成
 spark.sql(f"""
 CREATE OR REPLACE TABLE {tgt_table_name__3_2_1} AS
 SELECT
@@ -411,7 +411,7 @@ SELECT
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Challenge1. フェデレーションクエリを使ったデータの取り込み(任意)
+# MAGIC ## Challenge. フェデレーションクエリを使ったデータの取り込み(任意)
 # MAGIC
 # MAGIC こちらは Challenge のコンテンツであり、実施は任意です。
 # MAGIC

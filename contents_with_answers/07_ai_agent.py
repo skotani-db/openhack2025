@@ -144,7 +144,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q3. Review Apps による評価(標準時間：15分)
+# MAGIC ## Q3. Review Apps による評価(標準時間：25分)
 
 # COMMAND ----------
 
