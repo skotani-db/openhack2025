@@ -170,7 +170,7 @@ max_chunk_size = 500
 tokenizer = OpenAIGPTTokenizer.from_pretrained("openai-gpt")
 text_splitter = RecursiveCharacterTextSplitter.from_huggingface_tokenizer(tokenizer, chunk_size=max_chunk_size, chunk_overlap=50)
 
-def split_html_with_h3_p(html, min_chunk_size=20, max_chunk_size=500):
+def split_html_with_h3_p(html, min_chunk_size=0, max_chunk_size=500):
     """
     HTMLコンテンツをh2, h3, pタグに基づいてチャンクに分割する関数。
     分割後、チャンクがmin_chunk_size以上のトークン数であるものだけを返す。
