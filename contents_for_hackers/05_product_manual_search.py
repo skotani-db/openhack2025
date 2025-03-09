@@ -361,13 +361,29 @@ vsc.list_endpoints()
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC ### ToDo: 共通スキーマ`common`を作成する
+# MAGIC ⚠️この手順は各班の**代表者1人**が行ってください。⚠️
+# MAGIC
+# MAGIC これ以降作成されるリソースは班全員で共有するリソースのため、`common`というスキーマを作成します。 
+# MAGIC
+# MAGIC `common`に登録されるリソースに対するアクセス権限を付与するため、`common`スキーマの詳細ページで`USE SCHEMA`, `EXECUTE`, `SELECT`権限を班全員に付与します。この権限は登録されるオブジェクトに継承されます。
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE SCHEMA IF NOT EXISTS common;
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ### ToDo: `product_documentation_vs`インデックスを作成する
 # MAGIC ⚠️この手順は各班の**代表者1人**が行ってください。⚠️
 # MAGIC
+# MAGIC
+# MAGIC
+# MAGIC <img src="https://github.com/databricks-demos/dbdemos-resources/blob/main/images/index_creation.gif?raw=true" width="1200px" style="float: right">
+# MAGIC
 # MAGIC Databricks Vector SearchでUnity CatalogのUIを使用して、`product_documentation`テーブルをソースとして、`product_documentation_vs`という名前のVector Indexを作成する手順は以下の通りです。
-# MAGIC
-# MAGIC <img src="https://github.com/databricks-demos/dbdemos-resources/blob/main/images/index_creation.gif?raw=true" width="600px" style="float: right">
-# MAGIC
 # MAGIC
 # MAGIC **手順:**
 # MAGIC
@@ -388,7 +404,7 @@ vsc.list_endpoints()
 # MAGIC
 # MAGIC 4.  **Vector Indexの設定:**
 # MAGIC
-# MAGIC     *   **名前:**  `product_documentation_vs`と入力します。
+# MAGIC     *   **名前:**  スキーマを`common`, インデックス名に`product_documentation_vs`と入力します。
 # MAGIC     *   **プライマリーキー (オプション):** 主キーとして使用する列を選択します。`id`と入力します。
 # MAGIC     *   **エンドポイント:** リアルタイム同期またはバッチ同期を選択します。`vs_endpoint`を選択します。
 # MAGIC     *   **同期する列:** インデックスに同期する列を選択します。`filename`と`content`を選択します。
@@ -406,13 +422,19 @@ vsc.list_endpoints()
 # MAGIC     * インデックス作成完了後、作成したインデックスを他の方が検索できるようにするため、カタログで`product_documentation_vs`の詳細を開きます
 # MAGIC     * `権限`タブから`SELECT`権限を班全員に付与します
 # MAGIC
-# MAGIC ✅以降のノートブックのセルは班全員で実行することができるようになっています
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### ToDo: ベクトル検索を実行する
+# MAGIC ✅ 全員が取り組むことができます
+# MAGIC
 
 # COMMAND ----------
 
 # インデックスの作成を確認
 VECTOR_SEARCH_INDEX_NAME = "product_documentation_vs"
-vs_schema_name = <ToDo: インデックスを作成した方のスキーマ名を指定>
+vs_schema_name = "common"
 vs_index_fullname = f"{catalog_name}.{vs_schema_name}.{VECTOR_SEARCH_INDEX_NAME}"
 
 index = vsc.get_index(VECTOR_SEARCH_ENDPOINT_NAME, vs_index_fullname)
@@ -441,18 +463,20 @@ docs
 
 # MAGIC %md
 # MAGIC ### 実践例
+# MAGIC ⚠️ 関数の登録は各班の**代表者1人**が行ってください。⚠️<br>
+# MAGIC
 # MAGIC Databricks Unity Catalog ではよく使うクエリを関数としてスキーマに登録することができます。
 # MAGIC スキーマに登録された関数は AI Agent の部品(`UCFunctionToolkit`) として簡単に呼び出すことができます。
 # MAGIC
 # MAGIC 以下の例では、 Ringo Computer のサポート部門に寄せられたケースのうち、緊急に処理すべき新規ケースを抽出する関数を Unity Catalog へ登録しています。
 # MAGIC
-# MAGIC 登録が完了したら実際にカタログで確認してみましょう！
+# MAGIC 登録が完了したら実際にカタログで詳細を確認しましょう。
 # MAGIC
 
 # COMMAND ----------
 
 create_func = f"""
-CREATE OR REPLACE FUNCTION {catalog_name}.{schema_name}.get_high_priority_new_cases()
+CREATE OR REPLACE FUNCTION {catalog_name}.common.get_high_priority_new_cases()
 RETURNS TABLE (
   CaseNumber STRING,
   SuppliedName STRING,
@@ -477,9 +501,14 @@ spark.sql(create_func)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ✅ 関数の呼び出しは全員が取り組むことができます <br>
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC -- 登録した関数を呼び出します
-# MAGIC SELECT * FROM get_high_priority_new_cases();
+# MAGIC SELECT * FROM common.get_high_priority_new_cases();
 
 # COMMAND ----------
 
@@ -488,7 +517,7 @@ import pandas as pd
 import io
 
 # ケースを取得する関数のフルパス
-case_func_fullname = f"{catalog_name}.{schema_name}.get_high_priority_new_cases"
+case_func_fullname = f"{catalog_name}.common.get_high_priority_new_cases"
 
 # DatabricksFunctionClientから関数呼び出し
 client = DatabricksFunctionClient()
@@ -502,6 +531,8 @@ display(df)
 
 # MAGIC %md
 # MAGIC ### ToDo: Vector Search を行う関数`manual_retriever`をカタログへ登録する
+# MAGIC ⚠️ 関数の登録は各班の**代表者1人**が行ってください。⚠️<br>
+# MAGIC
 # MAGIC Hint: [ドキュメント](https://docs.databricks.com/aws/ja/generative-ai/agent-framework/unstructured-retrieval-tools#unity-catalog%E6%A9%9F%E8%83%BD%E3%82%92%E6%8C%81%E3%81%A4%E3%83%99%E3%82%AF%E3%83%88%E3%83%AB%E6%A4%9C%E7%B4%A2%E3%83%AC%E3%83%88%E3%83%AA%E3%83%BC%E3%83%90%E3%83%BC%E3%83%84%E3%83%BC%E3%83%AB)  を参考に、カタログへベクトル検索関数を登録しましょう
 # MAGIC
 # MAGIC ベクトル検索関数のカタログへの登録が完了したら、権限をチーム内のメンバーに割り当ててみましょう
@@ -510,7 +541,7 @@ display(df)
 
 # ToDo:
 create_retriever = f"""
-CREATE OR REPLACE FUNCTION {catalog_name}.{schema_name}.manual_retriever (
+CREATE OR REPLACE FUNCTION {catalog_name}.common.manual_retriever (
   query STRING
   COMMENT 'The query string for searching our product documentation.'
 ) RETURNS TABLE
@@ -523,6 +554,12 @@ FROM
 """
 
 spark.sql(create_retriever)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### ToDo: ベクトル検索を実行する
+# MAGIC ✅ 関数の呼び出しは全員が取り組むことができます <br>
 
 # COMMAND ----------
 
