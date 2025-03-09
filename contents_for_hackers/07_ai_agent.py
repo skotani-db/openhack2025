@@ -28,14 +28,14 @@
 # MAGIC 1. Databricks ワークスペースにログインし、左側のナビゲーションから [機械学習] > [Playground] を選択します。
 # MAGIC
 # MAGIC 2. AI Playground の画面で、左上のドロップダウンメニューから `openhack-gpt-4o` エンドポイントを選択します。
-# MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/endpoint_selection.png)
+# MAGIC ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/endpoint_selection.png)
 # MAGIC
 # MAGIC 3. [ツール] セクションを探し、`manual_retriever` ツールを選択します。このツールが表示されない場合は、カスタムツールとして追加する必要があります。
-# MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/tool_selection.png)
+# MAGIC ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/tool_selection.png)
 # MAGIC
 # MAGIC 4. システムプロンプトを設定します。例えば:
 # MAGIC    "あなたは ringo computer のマニュアルに関する質問に答えるエキスパートです。manual_retriever ツールを使用して、適切な情報を取得し、ユーザーの質問に答えてください。"
-# MAGIC    ![](/Workspace/Shared/contents_with_answer/data/img/export_notebook.png)
+# MAGIC    ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/export_notebook.png)
 # MAGIC
 # MAGIC 5. チャットインターフェースを使用して、エージェントとの対話をテストします。以下のようなサンプル質問を試してみましょう:
 # MAGIC    - "電源の入れ方を教えてください。"
@@ -68,7 +68,7 @@
 # MAGIC
 # MAGIC AI Playgroundで作成されたdriverノートブックは、エージェントのログ記録、評価、登録、およびデプロイを行うための重要なコンポーネントです。
 # MAGIC driverノートブックの記述で分からないポイントがあれば、Databricks Assistantへ聞いてみましょう！
-# MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/driver_notebook.png)
+# MAGIC ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/driver_notebook.png)
 # MAGIC
 # MAGIC ### `driver` ノートブックの流れ
 # MAGIC - Mosaic AIエージェントフレームワークを使用してLangGraphエージェントの定義を行います
@@ -153,7 +153,7 @@
 # MAGIC
 # MAGIC driver ノートブックをランスルーして最後のセルを実行すると、`Review Apps`が起動します。<br>
 # MAGIC
-# MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/review_app_url.png)
+# MAGIC ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/review_app_url.png)
 # MAGIC
 # MAGIC Databricks Review Appsは、AIアプリケーションの品質評価を効率的に行うためのツールです。その概要と意義、および評価手順は以下の通りです:
 # MAGIC
@@ -169,10 +169,37 @@
 # MAGIC #### 生成評価
 # MAGIC
 # MAGIC 1. **ボットをテストする**タブでAIとチャットを開始します
-# MAGIC 2. 以下のようなサンプル質問をAgentに聞いてみましょう
-# MAGIC    - "電源の入れ方を教えてください。"
-# MAGIC    - "メモリを増設する方法は？"
-# MAGIC    - "OSをアップデートする手順を説明してください。"
+# MAGIC 2. 以下のようなサンプル質問をAgentに聞いてみましょう (いくつか選んで行いましょう)
+# MAGIC    - コンピュータの電源が入らない場合、どのように対処すればよいですか？
+# MAGIC    - タッチペンが反応しなくなりました。原因と解決方法を教えてください。
+# MAGIC    - Wi-Fiに接続できないときのチェックポイントを教えてください。
+# MAGIC    - 画面がフリーズする原因と対策を教えてください。
+# MAGIC    - バッテリーの寿命を延ばす方法を教えてください。
+# MAGIC    - 初回セットアップの手順を詳しく教えてください。
+# MAGIC    - タッチパネルとタッチペンの違いは何ですか？
+# MAGIC    - 外部モニターに接続する方法を教えてください。
+# MAGIC    - スリープと休止状態の違いは何ですか？
+# MAGIC    - OSのアップデートは必ず行う必要がありますか？
+# MAGIC    - タッチペンを紛失した場合、どのように対応すればよいですか？
+# MAGIC    - 画面やペン先のメンテナンス方法を教えてください。
+# MAGIC    - 使用上の注意点を教えてください。
+# MAGIC    - バッテリー診断ツールの使い方を教えてください。
+# MAGIC    - ソフトウェア的な問題とハードウェア的な問題の違いは何ですか？
+# MAGIC    - ファームウェアの更新方法を教えてください。
+# MAGIC    - 重要データのバックアップ方法を教えてください。
+# MAGIC    - PCを完全シャットダウンする方法を教えてください。
+# MAGIC    - ACアダプターの接続確認方法を教えてください。
+# MAGIC    - コンセントが通電しているか確認する方法を教えてください。
+# MAGIC    - タッチペンの電池交換方法を教えてください。
+# MAGIC    - ペン先の摩耗を確認する方法を教えてください。
+# MAGIC    - ペン先の交換方法を教えてください。
+# MAGIC    - 液晶画面のクリーニング方法を教えてください。
+# MAGIC    - 作業スペースの準備方法を教えてください。
+# MAGIC    - 静電気対策の方法を教えてください。
+# MAGIC    - バッテリー不具合の原因と対策を教えてください。
+# MAGIC    - OSやドライバーのアップデート方法を教えてください。
+# MAGIC    - 古いファームウェアが原因のバッテリー問題について教えてください。
+# MAGIC    - バッテリーの急激な消耗の原因と対策を教えてください。
 # MAGIC 3. AIの回答を評価し、「はい」「いいえ」「わかりません」から選択します。できるだけ理由のチェックボックスを選択して評価するようにしましょう。
 # MAGIC 3. 必要に応じて「✏️応答を編集」から回答を直接編集します
 # MAGIC 4. 必要に応じて追加情報や具体的なフィードバックを提供する
@@ -311,7 +338,7 @@
 # MAGIC 1. Databricks ワークスペースにログインし、左側のナビゲーションから [機械学習] > [Playground] を選択します。
 # MAGIC
 # MAGIC 2. AI Playground の画面で、左上のドロップダウンメニューから `openhack-gpt-4o` エンドポイントを選択します。
-# MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/endpoint_selection.png)
+# MAGIC ![](/Workspace/Shared/openhack2025/contents_with_answers/data/img/endpoint_selection.png)
 # MAGIC
 # MAGIC 3. [ツール] セクションを探し、`manual_retriever`と`get_high_priority_new_cases`ツールを選択します。このツールが表示されない場合は、カスタムツールとして追加する必要があります。
 # MAGIC
