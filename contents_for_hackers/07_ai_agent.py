@@ -206,7 +206,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ⚠️この手順は各班の**代表者1人**が行ってください。⚠️
+# MAGIC ⚠️各班の**代表者1人**がデプロイしたアプリを、**班全員**で使用してみましょう 。⚠️
 # MAGIC
 # MAGIC Databricks AppsのGUIを使用してchatbot agentをデプロイする手順は以下の通りです:
 # MAGIC
@@ -269,7 +269,9 @@
 # MAGIC
 # MAGIC ```
 # MAGIC
-# MAGIC 11. 8で開いたアプリの詳細ページへ戻り、実行中と表示されているURLをクリックして、実際にアプリを使用してみましょう！
+# MAGIC 11. 8で開いたアプリの詳細ページへ戻り、右上の「deploy」から再度デプロイして変更を反映します
+# MAGIC 12. また右上の「Permission」から班全員に「Can Use」の権限を渡します。
+# MAGIC 13. 実行中と表示されているURLをクリックして、実際にアプリを使用してみましょう！
 # MAGIC
 # MAGIC ### TIPS
 # MAGIC デフォルトの処理では、Databricks SDK の Workspace Client から Model Serving Endpoint へクエリをしていました。 <br>
