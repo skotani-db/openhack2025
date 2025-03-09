@@ -175,7 +175,7 @@ dbutils.widgets.text("schema_name", schema_name, "4.スキーマ名")
 # MAGIC
 # MAGIC 1. Databricksワークスペースにログインします。
 # MAGIC 2. 左側のナビゲーションペインで「カタログ」をクリックします。
-# MAGIC 3. csvをアップロードしたカタログ、スキーマ、そしてボリュームを選択します。 \
+# MAGIC 3. 所属されているチーム名のカタログ、スキーマ、そしてボリュームを選択します。 \
 # MAGIC `x_catalog`カタログ, `default`スキーマ, `src_data`ボリューム。
 # MAGIC
 # MAGIC ### 2. CSVファイルの確認

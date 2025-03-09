@@ -56,7 +56,7 @@ spark.sql(
 # MAGIC 1. `product_manual`フォルダのハンバーガーメニュー（`︙`）を選択して、 `ダウンロード形式：` -> `ソースファイル` をクリックしてデータファイルをダウンロード
 # MAGIC 1. ダウンロードした Zip ファイルを解凍
 # MAGIC 1. 現在のノートブックの左型タブにある`Catalog (Ctrl + Alt + C)`を選択後、`05_vector_search_index_for_{username}`スキーマ下にある`product_manual` Volume にてハンバーガーメニュー（`︙`）を選択し、`このボリュームにアップロード`を選択
-# MAGIC 1. 表示されたウィンドウに解凍した CSV ファイルをすべて配置して、`アップロード`を選択
+# MAGIC 1. 表示されたウィンドウに解凍した html ファイルをすべて配置して、`アップロード`を選択
 # MAGIC 1. 下記のセルを実行し、ファイルが配置されていることを確認
 
 # COMMAND ----------
@@ -78,7 +78,7 @@ display(dbutils.fs.ls(src_file_dir))
 # MAGIC 起票されたサポートチケットに対してマニュアルに基づいて適切な回答を作成するためには、マニュアルの記載をLLMに入力して適切な回答を考えてもらう必要があります。 \
 # MAGIC しかし、膨大なマニュアルの全てをLLMへ入力することはモデルでは通常入力可能なトークンの数が決まっているため不可能であり、コストや性能の観点からも望ましくありません。
 # MAGIC
-# MAGIC このため、マニュアルを小さな塊に分割し、クエリと関連しそうな記述の塊（一般的にチャンクと呼ばれます）を抽出して、LLMへ与える文脈情報とします。今回はHTMLのH2タグによってHTMLファイルを分割します。
+# MAGIC このため、マニュアルを小さな塊に分割し、クエリと関連しそうな記述の塊（一般的にチャンクと呼ばれます）を抽出して、LLMへ与える文脈情報とします。今回はHTMLのタグによってHTMLファイルを分割します。
 
 # COMMAND ----------
 
@@ -358,6 +358,8 @@ vsc.list_endpoints()
 
 # MAGIC %md
 # MAGIC ### ToDo: `product_documentation_vs`インデックスを作成する
+# MAGIC ⚠️この手順は各班の**代表者1人**が行ってください。⚠️
+# MAGIC
 # MAGIC Databricks Vector SearchでUnity CatalogのUIを使用して、`product_documentation`テーブルをソースとして、`product_documentation_vs`という名前のVector Indexを作成する手順は以下の通りです。
 # MAGIC
 # MAGIC <img src="https://github.com/databricks-demos/dbdemos-resources/blob/main/images/index_creation.gif?raw=true" width="600px" style="float: right">
@@ -395,12 +397,19 @@ vsc.list_endpoints()
 # MAGIC
 # MAGIC     *   設定を確認し、「作成」ボタンをクリックします。
 # MAGIC     *   Vector Indexの作成プロセスが開始されます。ステータスはUIで監視できます。
+# MAGIC
+# MAGIC 6. **権限の付与:**
+# MAGIC     * インデックス作成完了後、作成したインデックスを他の方が検索できるようにするため、カタログで`product_documentation_vs`の詳細を開きます
+# MAGIC     * `権限`タブから`SELECT`権限を班全員に付与します
+# MAGIC
+# MAGIC ✅以降のステップは班全員で実行することができるようになっています
 
 # COMMAND ----------
 
 # インデックスの作成を確認
 VECTOR_SEARCH_INDEX_NAME = "product_documentation_vs"
-vs_index_fullname = f"{catalog_name}.{schema_name}.{VECTOR_SEARCH_INDEX_NAME}"
+vs_schema_name = <ToDo: インデックスを作成した方のスキーマ名を指定>
+vs_index_fullname = f"{catalog_name}.{vs_schema_name}.{VECTOR_SEARCH_INDEX_NAME}"
 
 index = vsc.get_index(VECTOR_SEARCH_ENDPOINT_NAME, vs_index_fullname)
 index.describe()
@@ -411,7 +420,7 @@ index.describe()
 question = "バッテリー交換"
 
 # question に関連する文書を検索する
-# https://api-docs.databricks.com/python/vector-search/databricks.vector_search.html#databricks.vector_search.index.VectorSearchIndex.similarity_search
+# https://learn.microsoft.com/ja-jp/azure/databricks/generative-ai/create-query-vector-search#pythonsdk-2
 
 # ToDo:
 results = index.<ToDo>
@@ -422,7 +431,7 @@ docs
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q3. Vector Search のツール化とアクセス制御(標準時間：10分)
+# MAGIC ## Q3. Vector Search のツール化(標準時間：10分)
 
 # COMMAND ----------
 

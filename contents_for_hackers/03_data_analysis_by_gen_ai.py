@@ -1,6 +1,6 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # AI/BI Genie Space にて生成 AI によるデータ分析の実績 (標準時間：60分)
+# MAGIC # AI/BI Genie Space にて生成 AI によるデータ分析の実績 (標準時間：45分)
 
 # COMMAND ----------
 
@@ -15,7 +15,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 事前準備 (標準時間：10分)
+# MAGIC ## 事前準備 (標準時間：5分)
 
 # COMMAND ----------
 
@@ -58,7 +58,7 @@ for init_n in init_notebooks:
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q1. Genie スペース を作成 (標準時間：20分)
+# MAGIC ## Q1. Genie スペース を作成 (標準時間：10分)
 
 # COMMAND ----------
 
