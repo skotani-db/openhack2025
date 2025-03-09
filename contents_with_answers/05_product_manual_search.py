@@ -443,7 +443,7 @@ vsc.list_endpoints()
 
 # インデックスの作成を確認
 VECTOR_SEARCH_INDEX_NAME = "product_documentation_vs"
-vs_schema_name = {schema_name}
+vs_schema_name = schema_name
 vs_index_fullname = f"{catalog_name}.{vs_schema_name}.{VECTOR_SEARCH_INDEX_NAME}"
 
 index = vsc.get_index(VECTOR_SEARCH_ENDPOINT_NAME, vs_index_fullname)
