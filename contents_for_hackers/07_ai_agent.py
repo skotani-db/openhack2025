@@ -129,13 +129,13 @@
 # MAGIC 6. セル11において、Agentがアクセスする必要のあるリソース一覧を定義します。 <br>
 # MAGIC これによってModel Servingでホストされているモデルがローカルと同様にリソースへアクセスできます。 <br>
 # MAGIC 具体的には、ベクトルサーチのインデックスおよび検索の関数、埋め込みと生成のエンドポイントが必要です。 <br>
-# MAGIC ベクトルサーチインデックスはカタログ名とスキーマ名を入力してから追加しましょう。
+# MAGIC 大括弧内の{catalog}, {vs_schema}, {user_name}はあらかじめ置換してから、コードに追加しましょう
 # MAGIC ```
 # MAGIC resources = [
 # MAGIC     DatabricksServingEndpoint(endpoint_name=LLM_ENDPOINT_NAME), 
 # MAGIC     DatabricksServingEndpoint(endpoint_name="openhack-text-embedding-ada-002"),
-# MAGIC     DatabricksVectorSearchIndex(index_name="{catalog}.{schema}.product_documentation_vs"),
-# MAGIC     DatabricksFunction(function_name="{catalog}.common.manual_retriever"),
+# MAGIC     DatabricksVectorSearchIndex(index_name="{catalog}.{vs_schema}.product_documentation_vs"),
+# MAGIC     DatabricksFunction(function_name="{catalog}.05_vector_search_index_for_{user_name}.manual_retriever"),
 # MAGIC     ]
 # MAGIC ```
 # MAGIC 7. 最後のセルで Model Serving エンドポイントと Review App が作れたら完了です。<br>

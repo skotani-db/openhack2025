@@ -451,13 +451,8 @@ docs
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC CREATE SCHEMA IF NOT EXISTS common;
-
-# COMMAND ----------
-
 create_func = f"""
-CREATE OR REPLACE FUNCTION {catalog_name}.common.get_high_priority_new_cases()
+CREATE OR REPLACE FUNCTION {catalog_name}.{schema_name}.get_high_priority_new_cases()
 RETURNS TABLE (
   CaseNumber STRING,
   SuppliedName STRING,
@@ -484,7 +479,6 @@ spark.sql(create_func)
 
 # MAGIC %sql
 # MAGIC -- 登録した関数を呼び出します
-# MAGIC USE SCHEMA common;
 # MAGIC SELECT * FROM get_high_priority_new_cases();
 
 # COMMAND ----------
@@ -516,7 +510,7 @@ display(df)
 
 # ToDo:
 create_retriever = f"""
-CREATE OR REPLACE FUNCTION {catalog_name}.common.manual_retriever (
+CREATE OR REPLACE FUNCTION {catalog_name}.{schema_name}.manual_retriever (
   query STRING
   COMMENT 'The query string for searching our product documentation.'
 ) RETURNS TABLE
