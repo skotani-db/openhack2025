@@ -512,7 +512,7 @@ SELECT
   content as page_content,
   map('doc_uri', filename, 'chunk_id', CAST(id AS STRING)) as metadata
 FROM
-  <ToDo>
+  <ToDo: 作成したインデックスから類似度が高い上位3件の文書をリターンする>
 """
 
 spark.sql(create_retriever)

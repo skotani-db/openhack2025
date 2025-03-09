@@ -144,7 +144,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q3. Review Apps による評価(標準時間：20分)
+# MAGIC ## Q3. Review Apps による評価(標準時間：15分)
 
 # COMMAND ----------
 
@@ -201,7 +201,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q4. Databricks Apps との連携(標準時間：10分)
+# MAGIC ## Q4. Databricks Apps との連携(標準時間15分)
 
 # COMMAND ----------
 
