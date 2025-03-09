@@ -66,7 +66,8 @@
 # MAGIC %md
 # MAGIC ⚠️この手順は各班の**代表者1人**が行ってください。⚠️
 # MAGIC
-# MAGIC AI Playgroundで作成されたdriver ノートブックは、エージェントのログ記録、評価、登録、およびデプロイを行うための重要なコンポーネントです。
+# MAGIC AI Playgroundで作成されたdriverノートブックは、エージェントのログ記録、評価、登録、およびデプロイを行うための重要なコンポーネントです。
+# MAGIC driverノートブックの記述で分からないポイントがあれば、Databricks Assistantへ聞いてみましょう！
 # MAGIC ![](/Workspace/Shared/contents_with_answer/data/img/driver_notebook.png)
 # MAGIC
 # MAGIC ### `driver` ノートブックの流れ
@@ -138,7 +139,7 @@
 # MAGIC     ]
 # MAGIC ```
 # MAGIC 7. 最後のセルで Model Serving エンドポイントと Review App が作れたら完了です。<br>
-# MAGIC Model Serving エンドポイントの初期作成には少し時間がかかるので、休憩を取ったり。
+# MAGIC Model Serving エンドポイントの初期作成には少し時間がかかるので、休憩を取りましょう。
 
 # COMMAND ----------
 
@@ -148,7 +149,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ✅この手順は班の**皆さん**で実行しましょう
+# MAGIC ⚠️各班の**代表者1人**がデプロイしたReview Appsを用いて、**班全員**でレビューに参加しましょう。⚠️
 # MAGIC
 # MAGIC driver ノートブックをランスルーして最後のセルを実行すると、`Review Apps`が起動します。<br>
 # MAGIC
@@ -319,7 +320,3 @@
 # MAGIC    - "直近解決すべきケースの回答の素案を作成してください"
 # MAGIC
 # MAGIC 6. エージェントの応答を確認し、必要に応じてシステムプロンプトや設定を調整します。
-# MAGIC
-# MAGIC 7. 必要に応じてQ2と同様にコードを編集して、エージェントを実行できるようにします。
-# MAGIC
-# MAGIC
