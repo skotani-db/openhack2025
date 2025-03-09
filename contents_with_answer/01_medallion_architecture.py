@@ -489,18 +489,22 @@ SELECT
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC --  Challenge: sqlserver_catalog カタログの、ringo スキーマにあるorderテーブルにクエリ(SELECT)を発行し、 SQL Server からデータを取得してください
+# MAGIC SELECT * FROM sqlserver_catalog.ringo.opportunity
+
+# COMMAND ----------
+
 # MAGIC %md
-# MAGIC ## Challenge2. Auto Loader によるデータの取り込み
-# MAGIC
-# MAGIC こちらは Challenge のコンテンツであり、実施は任意です。
+# MAGIC ## TIPS. Auto Loader によるデータの取り込み
 # MAGIC
 # MAGIC 今回はUIからBronzeテーブルを作成しましたが、本番用途ではオブジェクトストレージで新しいデータファイルを増分的に取り込むためのAuto Loaderという機能でデータを取り込むことが推奨されます。
 # MAGIC
-# MAGIC Databricks Auto Loader（自動ローダー）について詳しく知りたい方は、以下のドキュメントをご参照ください。
+# MAGIC Databricks Auto Loaderについて詳しく知りたい方は、以下のドキュメントをご参照ください。
 # MAGIC
-# MAGIC > 自動ローダーでは、追加の設定を行わなくても、クラウド ストレージに到着した新しいデータ ファイルが段階的かつ効率的に処理されます。
+# MAGIC > Auto Loader では、追加の設定を行わなくても、クラウド ストレージに到着した新しいデータ ファイルが段階的かつ効率的に処理されます。
 # MAGIC
-# MAGIC 引用元：[自動ローダー - Azure Databricks | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/databricks/ingestion/cloud-object-storage/auto-loader/)
+# MAGIC 引用元：[Auto Loader - Azure Databricks | Microsoft Learn](https://learn.microsoft.com/ja-jp/azure/databricks/ingestion/cloud-object-storage/auto-loader/)
 # MAGIC
 # MAGIC
 # MAGIC 取り込み対象のデータについては、下記のオブジェクトと同等のものとなっております。
