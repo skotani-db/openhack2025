@@ -267,9 +267,10 @@ def parse_and_split(docs: pd.Series) -> pd.Series:
 # COMMAND ----------
 
 # HTMLをh2, h3, pタグに基づいてチャンクに分割する処理をコールバック関数としてexplode()で展開
-# 書き込み時には"filename"列と"content"列を残す
+# ToDo: 書き込み時には"filename"列と"content"列を残す
+# Hint: https://qiita.com/taka4sato/items/4ab2cf9e941599f1c0ca#filter-select%E3%81%A7%E6%9D%A1%E4%BB%B6%E4%BB%98%E3%81%8D%E6%A4%9C%E7%B4%A2
 
-# # ToDO:
+# ToDO:
 (
     html_file
     .withColumn("content", F.explode(parse_and_split("value")))
@@ -468,7 +469,7 @@ RETURNS TABLE (
 COMMENT 'この関数は、優先順位の高い新規ケースをケース・テーブルから検索する。'
 RETURN
   SELECT CaseNumber, SuppliedName, SuppliedEmail, SuppliedPhone, SuppliedCompany, Type, Status, Subject, Description 
-  FROM trainer_catalog.`03_data_analysis_by_gen_ai_for_shotkotani`.case
+  FROM {catalog_name}.03_data_analysis_by_gen_ai_for_{user_name}.case
   WHERE Status = "新規" AND Priority = "高" AND Type = "問い合わせ"
   ORDER BY CaseNumber DESC
   LIMIT 1;
