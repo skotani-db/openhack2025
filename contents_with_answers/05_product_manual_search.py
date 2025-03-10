@@ -395,10 +395,11 @@ vsc.list_endpoints()
 # MAGIC ### ToDo: `product_documentation_vs`インデックスを作成する
 # MAGIC ⚠️この手順は各班の**代表者1人**が行ってください。⚠️
 # MAGIC
+# MAGIC
+# MAGIC
+# MAGIC <img src="https://github.com/databricks-demos/dbdemos-resources/blob/main/images/index_creation.gif?raw=true" width="1200px" style="float: right">
+# MAGIC
 # MAGIC Databricks Vector SearchでUnity CatalogのUIを使用して、`product_documentation`テーブルをソースとして、`product_documentation_vs`という名前のVector Indexを作成する手順は以下の通りです。
-# MAGIC
-# MAGIC <img src="https://github.com/databricks-demos/dbdemos-resources/blob/main/images/index_creation.gif?raw=true" width="600px" style="float: right">
-# MAGIC
 # MAGIC
 # MAGIC **手順:**
 # MAGIC
@@ -419,13 +420,14 @@ vsc.list_endpoints()
 # MAGIC
 # MAGIC 4.  **Vector Indexの設定:**
 # MAGIC
-# MAGIC     *   **名前:**  `product_documentation_vs`と入力します。
+# MAGIC     *   **名前:**  スキーマを`common`, インデックス名に`product_documentation_vs`と入力します。
 # MAGIC     *   **プライマリーキー (オプション):** 主キーとして使用する列を選択します。`id`と入力します。
 # MAGIC     *   **エンドポイント:** リアルタイム同期またはバッチ同期を選択します。`vs_endpoint`を選択します。
 # MAGIC     *   **同期する列:** インデックスに同期する列を選択します。`filename`と`content`を選択します。
 # MAGIC     *   **ソース埋め込み:** 今回は文字列をインプットとして埋め込み関数を使用して埋め込み列を作成するため`コンピュート埋め込み`を選択します。`既存の埋め込み列を使用`を選択すると、ユーザー側で埋め込みを計算した列を同期します。
 # MAGIC     *   **埋め込みソース列:** 埋め込み`content`を指定します。
 # MAGIC     *   **埋め込みモデル:** 使用する埋め込み関数を選択します。Databricksが提供する関数またはカスタムUDFを使用できます。Azure OpenAI Serviceを登録したサービングエンドポイントの`openhack-text-embedding-ada-002`を選択します。
+# MAGIC     *  **計算されたエンべディングを同期:** 今回はそのまま無効化しておきます。
 # MAGIC     *   **同期モード:** 今回のチャレンジでは`トリガー`を選択します。リアルタイムでの同期が必要な場合は`連続`を選択ください。
 # MAGIC
 # MAGIC 5.  **Vector Indexのデプロイ:**
@@ -437,7 +439,6 @@ vsc.list_endpoints()
 # MAGIC     * インデックス作成完了後、作成したインデックスを他の方が検索できるようにするため、カタログで`product_documentation_vs`の詳細を開きます
 # MAGIC     * `権限`タブから`SELECT`権限を班全員に付与します
 # MAGIC
-# MAGIC ✅以降のノートブックのセルは班全員で実行することができるようになっています
 
 # COMMAND ----------
 

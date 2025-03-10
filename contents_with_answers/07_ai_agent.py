@@ -88,17 +88,10 @@
 # MAGIC 基本的には、driver ノートブックを上から実行していきましょう！<br>
 # MAGIC 注意として、エクスポートされたコードを AI Playground セッション と同じように動作させるためには以下の手順を実行する必要があります<br>
 # MAGIC
-# MAGIC 1. セル1において、`catalog`, `schema`, `model_name`を指定します。
-# MAGIC ```
-# MAGIC catalog = "{team}_catalog"
-# MAGIC schema = "07_ai_agent_for_{username}"
-# MAGIC model_name = "manual_agent"
-# MAGIC ```
-# MAGIC
-# MAGIC 2. セル3において、インストールするlanggraphのバージョンを以下のように固定してください
+# MAGIC 1. セル2において、インストールするlanggraphのバージョンを以下のように固定してください
 # MAGIC ```langgraph==0.2.74```
 # MAGIC
-# MAGIC 3. セル5の`## Define agent logic`のすぐ下の行に以下のコードを追加します。これによって、後に検索器の性能評価が行えるようになります。
+# MAGIC 2. セル4の`## Define agent logic`のすぐ下の行に以下のコードを追加します。これによって、後に検索器の性能評価が行えるようになります。
 # MAGIC ```
 # MAGIC mlflow.models.set_retriever_schema(
 # MAGIC     name="manual_retriever",
@@ -108,7 +101,7 @@
 # MAGIC )
 # MAGIC ```
 # MAGIC
-# MAGIC 4. セル11において、モデルがデプロイ時にインストールするlanggraphのバージョンを固定してください。
+# MAGIC 3. セル10において、モデルがデプロイ時にインストールするlanggraphのバージョンを固定してください。
 # MAGIC ```
 # MAGIC pip_requirements=[
 # MAGIC             "mlflow",
@@ -120,13 +113,13 @@
 # MAGIC         ]
 # MAGIC ```
 # MAGIC
-# MAGIC 5. セル11において、mlflowのモデルが権限を持つ必要があるリソースを指定してください。 <br>
+# MAGIC 4. セル10において、mlflowのモデルが権限を持つ必要があるリソースを指定してください。 <br>
 # MAGIC `mlflow.models.resources`のモジュールで、Databricksの各種リソースを指定することができます。 <br>
 # MAGIC デフォルトで生成されたノートブックでは`DatabricksVectorSearchIndex`のモジュールのインポートが含まれていないので追加しましょう。
 # MAGIC ```
 # MAGIC from mlflow.models.resources import DatabricksFunction, DatabricksServingEndpoint, DatabricksVectorSearchIndex
 # MAGIC ```
-# MAGIC 6. セル11において、Agentがアクセスする必要のあるリソース一覧を定義します。 <br>
+# MAGIC 5. セル10において、Agentがアクセスする必要のあるリソース一覧を定義します。 <br>
 # MAGIC これによってModel Servingでホストされているモデルがローカルと同様にリソースへアクセスできます。 <br>
 # MAGIC 具体的には、ベクトルサーチのインデックスおよび検索の関数、埋め込みと生成のエンドポイントが必要です。 <br>
 # MAGIC 大括弧内の{catalog}はあらかじめ置換してから、コードに追加しましょう
@@ -134,10 +127,18 @@
 # MAGIC resources = [
 # MAGIC     DatabricksServingEndpoint(endpoint_name=LLM_ENDPOINT_NAME), 
 # MAGIC     DatabricksServingEndpoint(endpoint_name="openhack-text-embedding-ada-002"),
-# MAGIC     DatabricksVectorSearchIndex(index_name="{catalog}.common.product_documentation_vs"),
-# MAGIC     DatabricksFunction(function_name="{catalog}.common.manual_retriever"),
+# MAGIC     DatabricksVectorSearchIndex(index_name=f"{catalog}.common.product_documentation_vs"),
+# MAGIC     DatabricksFunction(function_name=f"{catalog}.common.manual_retriever"),
 # MAGIC     ]
 # MAGIC ```
+# MAGIC
+# MAGIC 6. セル17において、`catalog`, `schema`, `model_name`を指定します。
+# MAGIC ```
+# MAGIC catalog = "{team}_catalog"
+# MAGIC schema = "common"
+# MAGIC model_name = "manual_agent"
+# MAGIC ```
+# MAGIC
 # MAGIC 7. 最後のセルで Model Serving エンドポイントと Review App が作れたら完了です。<br>
 # MAGIC Model Serving エンドポイントの作成が完了したら、エンドポイントの詳細ページに行って、班全員に「Can Query」の権限を付与してください。<br>
 # MAGIC Model Serving エンドポイントの初期作成には少し時間がかかるので、休憩を取りましょう。
