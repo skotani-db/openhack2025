@@ -366,7 +366,7 @@ vsc.list_endpoints()
 # MAGIC
 # MAGIC これ以降作成されるリソースは班全員で共有するリソースのため、`common`というスキーマを作成します。 
 # MAGIC
-# MAGIC `common`に登録されるリソースに対するアクセス権限を付与するため、`common`スキーマの詳細ページで`USE SCHEMA`, `EXECUTE`, `SELECT`権限を班全員に付与します。この権限は登録されるオブジェクトに継承されます。
+# MAGIC `common`に登録されるリソースに対するアクセス権限を付与するため、`common`スキーマの詳細ページで`USE SCHEMA`, `EXECUTE`, `SELECT`権限を班全員に付与します。この権限はスキーマに登録される各オブジェクトに継承されます。
 
 # COMMAND ----------
 
@@ -503,7 +503,7 @@ spark.sql(create_func)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ✅ 関数の呼び出しは全員が取り組むことができます <br>
+# MAGIC ✅ 以下の関数の呼び出しは全員が取り組むことができます <br>
 
 # COMMAND ----------
 
@@ -536,7 +536,7 @@ display(df)
 # MAGIC
 # MAGIC Hint: [ドキュメント](https://docs.databricks.com/aws/ja/generative-ai/agent-framework/unstructured-retrieval-tools#unity-catalog%E6%A9%9F%E8%83%BD%E3%82%92%E6%8C%81%E3%81%A4%E3%83%99%E3%82%AF%E3%83%88%E3%83%AB%E6%A4%9C%E7%B4%A2%E3%83%AC%E3%83%88%E3%83%AA%E3%83%BC%E3%83%90%E3%83%BC%E3%83%84%E3%83%BC%E3%83%AB)  を参考に、カタログへベクトル検索関数を登録しましょう
 # MAGIC
-# MAGIC ベクトル検索関数のカタログへの登録が完了したら、権限をチーム内のメンバーに割り当ててみましょう
+# MAGIC ✅ ベクトル検索関数のカタログへの登録が完了したら、`権限`をチーム内のメンバーに割り当ててみましょう
 
 # COMMAND ----------
 
