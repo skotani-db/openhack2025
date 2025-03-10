@@ -314,25 +314,8 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Challenge 1. 推論テーブルの分析によるエージェントのモニタリング
-# MAGIC 推論テーブルからエージェントの改善ポイントを抽出したり、実際の運用状況をモニタリングしてみましょう！<br>
-# MAGIC [エージェント評価を行うサンプルコード](https://docs.databricks.com/_extras/notebooks/source/generative-ai/agent-evaluation-online-monitoring-notebook.html)を実行して、エージェント運用、アセスメント結果のモニタリングを行うダッシュボードを作成します。<br>
-# MAGIC ### ダッシュボードの構成
-# MAGIC - エンドポイント使用状況のモニタリング
-# MAGIC - アセスメント結果（生成、検索）
-# MAGIC - LLM as a Judge によるレスポンス評価
+# MAGIC ## Challenge 1. 自律的なAgentの作成
 # MAGIC
-# MAGIC ![](https://learn.microsoft.com/ja-jp/azure/databricks/_static/images/generative-ai/online-monitoring-dashboard.gif)
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Challenge 2. 自律的なAgentの作成
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC ✅この手順は班の**皆さん**で実行しましょう
 # MAGIC
 # MAGIC Databricks の AI Playground を使用して、`openhack-gpt-4o` エンドポイントと `manual_retriever`, `get_high_priority_new_cases`ツールを登録し、起票されたケースから特に解決するべきものに対して、ringo computer のマニュアルに参考に回答の素案を作成するエージェントを作成します。手順は以下の通りです:
@@ -351,3 +334,20 @@
 # MAGIC    - "直近解決すべきケースの回答の素案を作成してください"
 # MAGIC
 # MAGIC 6. エージェントの応答を確認し、必要に応じてシステムプロンプトや設定を調整します。
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Challenge 2. 推論テーブルの分析によるエージェントのモニタリング
+# MAGIC 推論テーブルからエージェントの改善ポイントを抽出したり、実際の運用状況をモニタリングしてみましょう！<br>
+# MAGIC [エージェント評価を行うサンプルコード](https://docs.databricks.com/_extras/notebooks/source/generative-ai/agent-evaluation-online-monitoring-notebook.html)を実行して、エージェント運用、アセスメント結果のモニタリングを行うダッシュボードを作成します。<br>
+# MAGIC ### ダッシュボードの構成
+# MAGIC - エンドポイント使用状況のモニタリング
+# MAGIC - アセスメント結果（生成、検索）
+# MAGIC - LLM as a Judge によるレスポンス評価
+# MAGIC
+# MAGIC ![](https://learn.microsoft.com/ja-jp/azure/databricks/_static/images/generative-ai/online-monitoring-dashboard.gif)
+
+# COMMAND ----------
+
+
