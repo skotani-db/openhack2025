@@ -458,7 +458,7 @@ docs
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Q3. Vector Search のツール化(標準時間：10分)
+# MAGIC ## Q3. Vector Search のツール化とアクセス制御(標準時間：10分)
 
 # COMMAND ----------
 

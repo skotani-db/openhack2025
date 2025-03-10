@@ -347,7 +347,3 @@
 # MAGIC - LLM as a Judge によるレスポンス評価
 # MAGIC
 # MAGIC ![](https://learn.microsoft.com/ja-jp/azure/databricks/_static/images/generative-ai/online-monitoring-dashboard.gif)
-
-# COMMAND ----------
-
-
