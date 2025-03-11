@@ -310,7 +310,7 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Challenge 1. 自律的なAgentの作成
+# MAGIC ## Challenge . 自律的なAgentの作成
 # MAGIC
 # MAGIC ✅この手順は班の**皆さん**で実行しましょう
 # MAGIC
@@ -331,8 +331,8 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Challenge 2. 推論テーブルの分析によるエージェントのモニタリング
-# MAGIC 推論テーブルからエージェントの改善ポイントを抽出したり、実際の運用状況をモニタリングしてみましょう！<br>
+# MAGIC ## TIPS. 推論テーブルの分析によるエージェントのモニタリング
+# MAGIC 推論テーブルからエージェントの改善ポイントを抽出したり、実際の運用状況をモニタリングできます！<br>
 # MAGIC [エージェント評価を行うサンプルコード](https://docs.databricks.com/_extras/notebooks/source/generative-ai/agent-evaluation-online-monitoring-notebook.html)を実行して、エージェント運用、アセスメント結果のモニタリングを行うダッシュボードを作成します。<br>
 # MAGIC ### ダッシュボードの構成
 # MAGIC - エンドポイント使用状況のモニタリング
