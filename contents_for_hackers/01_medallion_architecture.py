@@ -364,10 +364,6 @@ spark.sql(query)
 # MAGIC ```sql
 # MAGIC SELECT
 # MAGIC   prd.*
-# MAGIC     EXCEPT (
-# MAGIC       _datasource,
-# MAGIC       _ingest_timestamp
-# MAGIC     ),
 # MAGIC   pbk.UnitPrice
 # MAGIC   FROM
 # MAGIC     {src_table_name__3_2_1} prd

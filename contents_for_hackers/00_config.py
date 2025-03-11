@@ -13,7 +13,7 @@
 # DBTITLE 1,チーム名、ユーザー名を設定
 # チーム名、及び、ユーザー名を設定
 team_name = <Todo: 各チームのカタログ名を設定>  ## team_name はカタログ名となる
-user_name = <Todo: ユーザーごとの名前を指定>  ## user_name はスキーマ名の一部となる
+user_name = <Todo: ユーザーごとの名前を指定>   ## user_name はスキーマ名の一部となる
 print(f"user_name: `{user_name}`")
 
 # 利用するカタログ名を設定
